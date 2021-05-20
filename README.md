@@ -1,29 +1,42 @@
+SETUP FILES
+===========
 
-Examples for BACnet device / object / property discover using REST API provided by enteliWEB Software
+**udmi-config.json** contains all of the settings for the udmi discovery tool:
 
-URL for enteliWEB - e.g. http://localhost
+    "server":       "http://localhost",
+    "site":         "Local",
+    "username":     "Partner",
+    "password":     "RGVtb29tZUQ=",
+    "eweb-id":      7,
+    "mqtt-config":  "mqtt.json",
+    "omit-devices": ["enteliWEB","CopperCube","enteliCLOUD"],
+    "gateway-id":   "GAT-102",
+    "gateway-addr": "4124019",
+    "telemetry":    "telemetry-objects.json",
+    "substitution": "ontology-substitution-list.txt",
+    "units":        "units-exchange.json",
+    "dev-xref":     "device-xref.json",
+    "use-tags":     true,
+    "read-file-data": false,
+    "commissioned-flag": false,
+    "excludes":     "exclude-list.txt",
+    "write-to-file": false
 
-Authenticate using OAuth 2.0 with Usernameand Password (encrytped)
+mqtt-config.json contains the GCP connection parameters for the udmi discovery tool:
 
-BACnet Site Name - e.g. Local
 
-example REST calls:
+telemetry-objects.json contains a list of the BACnet objects that are to be considered for inclusion in the telemetry pointset
 
-To get a list of BACnet devicesas a JSON dictionary:-
 
-GET ('http://localhost/enteliweb/api/.bacnet/Local?alt=json')
+ontology-substition-list.txt is a list of characters that are to replaced with an underscore so as to better match the Digital Buildings Ontology
 
-To get a list of BACnet objects within a BACnet device:-
 
-GET ('http://localhost/enteliweb/api/.bacnet/Local/101?alt=json')
+units-exchange.json contains a map of engineering units to those permitted in the Digital Buildings Ontology (e.g. "°C" = "degrees-Celsius")
 
-To get a list of BACnet properties within a BACnet object of a BACnet device:-
 
-GET ('http://localhost/enteliweb/api/.bacnet/Local/101/analog-input,1?alt=json
+device-xref.json contains a map of BACnet device names to Digital Buildings Ontology compliant formats
 
-To get one specific BACnet property from a BACnet object of a BACnet device:-
 
-GET ('http://localhost/enteliweb/api/.bacnet/Local/101/analog-input,1/present_value?alt=json
-(note the 'Property Name' must be a BACnet property as defined in ISO-16484-5
+exclude-list.txt contains a list of strings that if found in an object name cause that object to be excluded from the telemetry pointset
 
-Supports BACnet Rev 19
+
