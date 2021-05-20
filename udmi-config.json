@@ -1,0 +1,20 @@
+{
+    "server":       "http://localhost",
+    "site":         "Local",
+    "username":     "Partner",
+    "password":     "RGVtb29tZUQ=",
+    "eweb-id":      7,
+    "mqtt-config":  "mqtt.json",
+    "omit-devices": ["enteliWEB","CopperCube","enteliCLOUD"],
+    "gateway-id":   "GAT-102",
+    "gateway-addr": "4124019",
+    "telemetry":    "telemetry-objects.json",
+    "substitution": "ontology-substitution-list.txt",
+    "units":        "units-exchange.json",
+    "dev-xref":     "device-xref.json",
+    "use-tags":     true,
+    "read-file-data": false,
+    "commissioned-flag": false,
+    "excludes":     "exclude-list.txt",
+    "write-to-file": false
+}

@@ -1,0 +1,14 @@
+{
+    "analog-input": "AI",
+    "analog-output": "AO",
+    "analog-value": "AV",
+    "binary-input": "BI",
+    "binary-output": "BO",
+    "binary-value": "BV",
+    "multistate-input": "MI",
+    "multistate-output": "MO",
+    "multistate-value": "MV",
+    "characterstring-value": "CSV",
+    "loop": "CO",
+    "schedule": "SCH"
+}

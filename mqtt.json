@@ -1,0 +1,8 @@
+{
+  "hostName": "mqtt.googleapis.com",
+  "tcpPort": 8883,
+  "location": "europe-west1",
+  "project": "bacnet-gateway",
+  "registry": "test-registry",
+  "device": "GAMA-1"
+}

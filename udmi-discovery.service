@@ -1,0 +1,10 @@
+[Unit]
+Description=Run hourly timer for GCP UDMI Explorer
+
+[Service]
+Type=simple
+ExecStart=/home/john/udmi-discover.sh
+
+[Install]
+WantedBy=multi-user.target
+
