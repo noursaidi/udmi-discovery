@@ -72,4 +72,6 @@ Installation instructions:
 7) To check the time of the next scheduled run - systemctl list-timers<br />
 8) To view the log - cat /var/log/syslog | grep "udmi-discovery"<br />
 
+ToDo: add section about public key and GCP connection 
+
     
