@@ -2,7 +2,7 @@
 Description=Execute every hour, on the hour
 
 [Timer]
-OnCalendar=*-*-* *:00:00
+OnCalendar=*:00/15
 Unit=udmi-discovery.service
 Persistent=true
 
