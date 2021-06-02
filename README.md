@@ -74,4 +74,18 @@ Installation instructions:
 
 ToDo: add section about public key and GCP connection 
 
-    
+To configure GCP IoT Core Connection:
+
+1) Edit GCP Parameters in mqtt.json e.g.
+    {
+      "hostName": "mqtt.googleapis.com",
+      "tcpPort": 8883,
+      "location": "europe-west1",
+      "project": "_your-project_",
+      "registry": "_your-registry_",
+      "device": "_your-device_"
+    }
+
+2) Use enteliWEB to create a new FIL Object named "Google Cloud IoT UDMI Public Key". The instance number does not matter
+3) Open the FIL object just created and check the Description property for the Public Key
+4) Copy / Paste the RSA-256 Public Key into the Authentication settings for the Device Twin on GCP
