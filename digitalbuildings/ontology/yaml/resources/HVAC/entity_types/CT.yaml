@@ -118,6 +118,30 @@ CT_SS_VSC_SWTC_SWISOVPM_RWISOVPM_SWISOVM_MWVPM:
   - SWISOVM
   - MWVPM
 
+CT_SS_VSFC:
+  id: "1531656668570451968"
+  description: "Cooling tower with speed frequency control."
+  is_canonical: true
+  implements:
+  - CT
+  - SS
+  - VSFC
+  opt_uses:
+  - control_mode
+  - run_mode
+  - lost_power_alarm
+
+CT_SS_VSC_RWISOVM_SWISOVM_SWTM:
+  id: "9226672358444498944"
+  description: "Cooling tower with supply and return isolation valves and supply temp monitoring."
+  is_canonical: true
+  implements:
+  - CT
+  - SS
+  - VSC
+  - RWISOVM
+  - SWISOVM
+  - SWTM
 
 ###################################
 ### Existing Non-standard Types ###
@@ -140,3 +164,31 @@ CT_US_SVL_MP3_1:
   - INCOMPLETE
   uses:
   - speed_frequency_command
+
+
+CT_SS_VSC_SWTM:
+  id: "1186744268983631872"
+  description: "Cooling tower with variable speed control and supply water temperature monitoring"
+  is_canonical: false
+  implements:
+  - CT
+  - SS
+  - VSC
+  - SWTM
+
+CT_SS_CWDT_OA_VSFC_CSWIVS_CRWIVS_CSWTC:
+  id: "1728970627244621824"
+  description: "CT with multi considering water isolation valve control, condensing return/supply water monitor and outside air monitor"
+  implements:
+  - CT
+  - SS
+  - CWDT
+  - OA
+  - VSFC
+  - CSWIVS
+  - CRWIVS
+  - CSWTC
+  opt_uses:
+  - control_mode
+  - run_mode
+  - lost_power_alarm

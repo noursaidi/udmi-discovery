@@ -59,3 +59,17 @@ LS:
   description: "Lighting system specific sensor."
   implements:
   - SENSOR
+
+ELT:
+  id: "8365482075012202496"
+  description: "Lights intended to provide illumination and/or direction during an emergency."
+  is_abstract: true
+  implements:
+  - EQUIPMENT
+
+ZONE:
+  id: "243803097002934272"
+  description: "Lighting system specific location."
+  is_abstract: true
+  opt_uses:
+  - zone_use_label

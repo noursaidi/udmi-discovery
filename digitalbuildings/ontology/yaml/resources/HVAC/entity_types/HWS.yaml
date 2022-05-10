@@ -169,6 +169,127 @@ HWS_SWTC_WDPC_WFRC_BYPVPM_PWDT:
   - BYPVPM
   - PWDT
 
+HWS_SWTC_WDPC_SWTCSCM_WDPCSCM:
+  id: "15800793118405558272"
+  description: "Simple heating water system with supply temp and differential pressure control and with supervisor control mode types (machine learning)."
+  is_canonical: true
+  implements:
+  - HWS_SWTC_WDPC
+  - SWTCSCM
+  - WDPCSCM
+
+HWS_SS_ALS:
+  id: "10375881911795974144"
+  description: "Heating water system with optional alarm, mode and status are being operated and monitored."
+  is_canonical: true
+  implements:
+  - HWS
+  - SS
+  opt_uses:
+  - schedule_run_command
+  - run_mode
+  - lost_power_alarm
+  - low_differential_pressure_alarm
+  - control_status
+
+HWS_SS_WDT:
+  id: "8124926523040858112"
+  description: "Heating water system with temperature reading between return/supply water"
+  is_canonical: true
+  implements:
+  - HWS
+  - SS
+  - WDT
+  opt_uses:
+  - schedule_run_command
+  - run_mode
+  - lost_power_alarm
+  - control_status
+
+HWS_SS_RWTC_SWTC:
+  id: "2014562175489671168"
+  description: "Heating water system with temperature control between return/supply water"
+  is_canonical: true
+  implements:
+  - HWS
+  - SS
+  - RWTC
+  - SWTC
+  opt_uses:
+  - schedule_run_command
+  - run_mode
+  - lost_power_alarm
+
+HWS_SWTC_BYPVPM_WDPC_WFRM:
+  id: "12025993778390106112"
+  description: "Heating water system (temp/pressure control) with bypass control and flow monitoring."
+  is_canonical: true
+  implements:
+  - HWS
+  - SWTC
+  - BYPVPM
+  - WDPC
+  - WFRC
+
+HWS_SWTM_WDPC_BYPVPM:
+  id: "4636941388200542208"
+  description: "Heating water system with supply temperature monitoring, differential pressure control and bypass valve control."
+  is_canonical: true
+  implements:
+  - HWS
+  - SWTM
+  - WDPC
+  - BYPVPM
+
+HWS_SWTC_WDPC_BYPVPM_HWVM:
+  id: "16598501998496579584"
+  description: "Heating water system with water supply temperature control, differential pressure control, bypass valve control and heating water valve control."
+  is_canonical: true
+  implements:
+  - HWS
+  - SWTC
+  - WDPC
+  - BYPVPM
+  - HWVM
+
+HWS_SWTM:
+  id: "5040576504803622912"
+  description: "Heating water system with supply temperature monitoring"
+  is_canonical: true
+  implements:
+  - HWS
+  - SWTM
+
+HWS_HLPM_WDPC_WFRM_WDT:
+  id: "14205401746502582272"
+  description: "Heating water system with differential pressure control, thermal power, flowrate and delta-T monitoring."
+  is_canonical: true
+  implements:
+  - HWS
+  - HLPM
+  - WDPC
+  - WFRM
+  - WDT
+
+HWS_WFRC_SWTC:
+  id: "16144201386085580800"
+  description: "Heating water system with flowrate and suppy temp control."
+  is_canonical: true
+  implements:
+  - HWS
+  - WFRC
+  - SWTC
+
+HWS_WFRM_SWTC_HLPM:
+  id: "9760348914287902720"
+  description: "Heating water system with supply temp control, and flowrate and thermal power monitoring."
+  is_canonical: true
+  implements:
+  - HWS
+  - WFRM
+  - SWTC
+  - HLPM
+
 ###################################
 ### Existing Non-standard Types ###
 ###################################
@@ -192,3 +313,16 @@ HWS_US_MTV_2000_2:
   uses:
   - mixing_valve_percentage_command
   - heat_exchange_supply_water_isolation_valve_command
+
+# Non Standard Types for CH ZRH EURD
+HWS_SWTC_CPC:
+  id: "8626163087818358784"
+  description: "Simple hot water system with circulation pump"
+  implements:
+  - HWS
+  - SWTC
+  - CPC
+  uses:
+  - circulation_pump_speed_percentage_command
+  - circulation_pump_speed_percentage_setpoint
+  - failed_alarm

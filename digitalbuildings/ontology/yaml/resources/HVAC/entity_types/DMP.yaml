@@ -19,6 +19,7 @@
 DMP_EDBPC:
   id: "2931964990892015616"
   description: "Stand-alone building pressure control damper."
+  is_canonical: true
   implements:
   - DMP
   - EDBPC
@@ -26,6 +27,7 @@ DMP_EDBPC:
 DMP_EDM:
   id: "17221675502306066432"
   description: "Exhaust damper monitoring."
+  is_canonical: true
   implements:
   - DMP
   - EDM
@@ -56,6 +58,30 @@ DMP_SDBPC_RMM:
   - DMP
   - SDBPC
   - RMM
+
+DMP_DICM:
+  id: "8449185696211533824"
+  description: "Controlling and monitoring damper isolation system."
+  is_canonical: true
+  implements:
+  - DMP
+  - DICM
+  opt_uses:
+  - control_mode
+  - schedule_run_command
+  - run_command
+  - run_status
+  - run_mode
+  - lost_power_alarm
+
+DMP_EDBPC_ZTM:
+  id: "9003744176889659392"
+  description: "Stand-alone building pressure control damper."
+  is_canonical: true
+  implements:
+  - DMP
+  - EDBPC
+  - ZTM
 
 
 ###################################

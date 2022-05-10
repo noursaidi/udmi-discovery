@@ -476,6 +476,29 @@ CH_SS_SWTC_DX4SWC_SWISOVPM_REFSM2X_REFPM2X:
   - REFSM2X
   - REFPM2X
 
+CH_SS_SCHWTC_HWDT:
+  id: "18403090850746728448"
+  description: "Simple air-cooled heat recovery chiller."
+  is_canonical: true
+  implements:
+  - CH
+  - SS
+  - SCHWTC
+  - HWDT
+
+CH_SS_SCHWTC_CHDX2SC_REFSM2X_REFPM2X_CWDT:
+  id: "13705273489445879808"
+  description: "Two stage chiller with refrigerant monitoring"
+  is_canonical: true
+  implements:
+  - CH
+  - SS
+  - SCHWTC
+  - CHDX2SC
+  - REFSM2X
+  - REFPM2X
+  - CWDT
+
 ###################################
 ### Existing Non-standard Types ###
 ###################################
@@ -504,3 +527,60 @@ CH_US_SBO_901_1:
   - INCOMPLETE
   uses:
   - cooling_percentage_sensor
+
+CH_SS_CHWDT_CWDT_CWDPM_CHWDPM_REFM:
+  id: "15066838320539500544"
+  description: "Non-standard type for SYD ODI chillers"
+  is_canonical: false
+  implements:
+  - CH
+  - SS
+  - CHWDT
+  - CWDT
+  - CWDPM
+  - CHWDPM
+  - REFM
+
+CH_SS_CHWDT2X_CWDT_CWDPM_CHWDPM_REFM:
+  id: "2835061732601233408"
+  description: "Non-standard type for SYD ODI chillers"
+  is_canonical: false
+  implements:
+  - CH
+  - SS
+  - CHWDT2X
+  - CWDT
+  - CWDPM
+  - CHWDPM
+  - REFM
+
+CH_SS_CHWDT:
+  id: "8718557248923631616"
+  description: "Non-standard chiller."
+  implements:
+  - CH
+  - INCOMPLETE
+  - SS
+  - CHWDT
+  opt_uses:
+  - lost_power_alarm
+  - run_mode
+
+CH_SS_CHWSWISOVM_CWSISOVM_CWRISOVM_CHWRWISOVM_CHWDT:
+  id: "5548867536184934400"
+  description: "Non standard chiller with chilled/condensing supply/return water isolation valve control. Chilled water flowrate status "
+  implements:
+  - CH
+  - SS
+  - CHWSWISOVM
+  - CWSISOVM
+  - CWRISOVM
+  - CHWRWISOVM
+  - CHWDT
+  uses:
+  - chilled_water_flowrate_status
+  - condensing_water_flowrate_status
+  - condensing_supply_water_temperature_sensor
+  opt_uses:
+  - lost_power_alarm
+  - run_mode

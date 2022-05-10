@@ -114,6 +114,25 @@ FAN_SS_CO2C:
   - SS
   - CO2C
 
+FAN_ZTM_ZHM_FDPM:
+  id: "3492587278197325824"
+  description: "Fan with zone temperature, zone humidity and filter monitoring"
+  is_canonical: true
+  implements:
+  - FAN
+  - ZTM
+  - ZHM
+  - FDPM
+
+FAN_ZTM_ZHM:
+  id: "17659222856044642304"
+  description: "Fan with zone temperature and zone humidity monitoring"
+  is_canonical: true
+  implements:
+  - FAN
+  - ZTM
+  - ZHM
+  
 ### INTERLOCKED FANS ###
 
 FAN_SS_DRI:
@@ -281,6 +300,132 @@ FAN_SS_DRSM8X:
   - FAN
   - SS
   - DRSM8X
+
+FAN_SS_EFVSC:
+  id: "3537623274471030784"
+  description: "Exhaust fan with variable speed control."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - EFVSC
+  
+FAN_SS_FDPM:
+  id: "5483178313495085056"
+  description: "Exhaust fan with filter monitoring."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - FDPM
+
+FAN_SS_DPM_ZHM_ZTM:
+  id: "7854710545398628352"
+  description: "Fan with sensors (temperature, humidity and low pressure)."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - DPM
+  - ZHM
+  - ZTM
+  opt_uses:
+  - control_mode
+  - run_mode
+  - low_differential_pressure_alarm
+  - lost_power_alarm
+  - control_status
+  
+FAN_SS_VSC_SSPM_OAFM_FDPM:
+  id: "12715959315052101632"
+  description: "Outside air fan with variable speed control, supply side pressure monitoring, outside air flow monitoring and filter monitoring."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - SSPM
+  - OAFM
+  - FDPM
+  
+FAN_SS_VSC_SSPM_OAFM:
+  id: "9467175133857710080"
+  description: "Outside air fan with variable speed control, supply side pressure monitoring, and outside air flow monitoring."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - SSPM
+  - OAFM
+  
+FAN_SS_VSC_ZTM_EFM:
+  id: "15053327521657389056"
+  description: "General exhaust fan with variable speed control, zone temperature monitoring, and exhaust air flow monitoring."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - ZTM
+  - EFM
+  
+FAN_SS_VSFC:
+  id: "6340656645672009728"
+  description: "Fan with frequency command control"
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSFC
+  opt_uses:
+  - low_differential_pressure_alarm
+  - lost_power_alarm
+  - control_mode
+  - run_mode
+  - schedule_run_command
+  - control_status
+
+FAN_SS_ZTC:
+  id: "17048861961233629184"
+  description: "Fan zone temperature control"
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - ZTC
+
+FAN_SS_VSC_EPC_EHHRC:
+  id: "6589814776619073536"
+  description: "Fan with exhaust static pressure control and heat recovery coils."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - EPC
+  - EHHRC
+ 
+FAN_SS_VSC_EHHRC:
+  id: "17074194709137588224"
+  description: "Fan with exhaust and heat recovery coils."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - EHHRC
+ 
+FAN_SS_DWI2X:
+  id: "4175885376348487680"
+  description: "Dishwasher-interlocked fan."
+  is_canonical: true
+  implements:
+  - FAN
+  - SS
+  uses:
+  - dishwasher_run_status_1
+  - dishwasher_run_status_2
 
 ###################################
 ### Existing Non-standard Types ###
@@ -454,3 +599,31 @@ FAN_US_SVL_MP7_2:
   - FAN_SS_VSC
   uses:
   - dishwasher_run_status
+
+FAN_SS_AL:
+  id: "17078082582253404160"
+  description: "Basic return fan start/stop only with optional alarms"
+  implements:
+  - FAN
+  - SS
+  opt_uses:
+  - lost_power_alarm
+  - low_differential_pressure_alarm
+  - control_mode
+  - run_mode
+  - schedule_run_command
+  - control_status
+
+FAN_SS_VSC_EPC_EHHRC_EHHRC3X:
+  id: "13340710618047447040"
+  description: "Non-standard fan with exhaust static pressure control and heat recovery coils."
+  implements:
+  - FAN
+  - SS
+  - VSC
+  - EPC
+  - EHHRC
+  uses:
+  - heat_recovery_water_isolation_valve_command_1
+  - heat_recovery_water_isolation_valve_command_2
+  - heat_recovery_water_isolation_valve_command_3
