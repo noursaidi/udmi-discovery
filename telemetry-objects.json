@@ -5,9 +5,9 @@
     "binary-input": "BI",
     "binary-output": "BO",
     "binary-value": "BV",
-    "multistate-input": "MI",
-    "multistate-output": "MO",
-    "multistate-value": "MV",
+    "multi-state-input": "MI",
+    "multi-state-output": "MO",
+    "multi-state-value": "MV",
     "characterstring-value": "CSV",
     "loop": "CO",
     "schedule": "SCH"

@@ -1,9 +1,10 @@
 {
-    "server":       "http://localhost",
-    "site":         "Local",
+    "xxxserver":       "http://192.168.0.102",
+    "server":       "http://51.186.129.141",
+    "site":         "LAN (Ethernet)",
     "username":     "Partner",
     "password":     "RGVtb29tZUQ=",
-    "eweb-id":      7,
+    "eweb-id":      2,
     "mqtt-config":  "mqtt.json",
     "omit-devices": ["enteliWEB","CopperCube","enteliCLOUD"],
     "gateway-id":   "GAT-102",

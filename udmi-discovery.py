@@ -8,6 +8,9 @@
 # Code for discovering BACnet devices and objects via enteliWEB REST API
 # Creates file/folder structrue for DAQ Registrar Tool
 #
+
+#from asyncio.windows_events import NULL
+
 import sys
 import argparse
 import datetime
@@ -37,23 +40,75 @@ TRUE_LIST =  [1,True,"True","true","TRUE"]
 BACNET_SERVER_PATH = '/var/lib/DeltaControls/BACnetServer'
 METADATA_FILE = 'metadata.json'
 RSA_PUBLIC_FILE = 'rsa_public.pem'
-DEFAULT_METADATA_TEMPLATE = {
-  "version": 1,
-  "timestamp": "2018-08-26T21:39:29.364Z",
-  "local_id": "92EA09",
-  "protocol": "bacnet",
-  "points": {
-  }
-}
+DEFAULT_STATE_METADATA_TEMPLATE = \
+'{\
+  "version": 1,\
+  "timestamp": "2018-08-26T21:39:29.364Z",\
+  "system": {\
+    "make_model": "ACME Bird Trap",\
+    "firmware": {\
+      "version": "3.2a"\
+    },\
+    "serial_no": "182732142",\
+    "last_config": "2018-08-26T21:49:29.364Z",\
+    "operational": true\
+  },\
+  "gateway": {\
+    "discovery": {\
+      "families": {\
+        "bacnet": {\
+          "generation": "2018-08-26T21:00:13Z",\
+          "active": true\
+        }\
+      }\
+    }\
+  }\
+}'
+
+DEFAULT_METADATA_TEMPLATE = \
+'{\
+  "version": 1,\
+  "timestamp": "2018-08-26T21:39:29.364Z",\
+  "generation": "2018-08-26T21:37:12Z",\
+  "families": {\
+    "iot": {\
+      "id": "N/A"\
+    },\
+    "bacnet": {\
+      "id": "N/A"\
+    },\
+    "ipv4": {\
+      "id": "N/A"\
+    },\
+    "ipv6": {\
+      "id": "N/A"\
+    },\
+    "mac": {\
+      "id": "N/A"\
+    }\
+  },\
+  "points": {\
+    "sup_flow_actual_avo_1": {\
+      "units": "percent",\
+      "ref": "analog-value_29",\
+      "description": "Basic value reading"\
+    }\
+  }\
+}'
 
 DEFAULT_DEBUG_LEVEL = 4
+
+IMPLICIT_SCAN = 'Implicit Scan'
+EXPLICIT_SCAN = 'Explicit Scan'
+PERIODIC_SCAN = 'Periodic Scan'
+CONTINUOUS_SCAN = 'Continuous Scan'
 
 class UDMIDiscovery():
 
     MAXIMUM_BACKOFF_TIME = 32
     MQTT_BACKOFF_TIME = 5
     
-    PUBLIC_KEY_FIL_NAME = "Google Cloud IoT UDMI Public Key"
+    PUBLIC_KEY_FIL_NAME = "UDMI Discovery Public Key"
     GOOGLE_ROOTS_FIL_NAME = "Google Cloud IoT Gateway Roots"
     PRIVATE_KEY_FILE = "rsa_private.pem"
     PUBLIC_KEY_FILE = "rsa_public.pem"
@@ -72,11 +127,18 @@ class UDMIDiscovery():
             self.password = None
             self.eweb_id = None
             self.metadata_template = metatemplate
+            self.state_metadata = None
+            self.metadata = None
 
             self.configuration_loaded = False
 
+            # The initial backoff time after a disconnection occurs, in seconds.
+            self.minimum_backoff_time = 1
+
             self.config_object = None
             self.config_string = None
+            self.last_config = "YYYY-MM-DD HH:MM:SS.SZ"
+            self.config_gateway = {}
 
             self.certificates_dir = None
             self.private_key_path = None
@@ -84,13 +146,12 @@ class UDMIDiscovery():
             self.google_roots_path = None
             self.public_key_pem = None
             
-            self.state_telemetry_topic = '/devices/{GWID}/state'
-            self.metadata_topic = '/devices/{GWID}/events/{DID}/meta'
+            self.state_topic = '/devices/{GWID}/state'
+            self.events_discovery_topic = '/devices/{GWID}/events/discovery'
 
             self.public_key = ''
             self.read_file_data = False
             self.commissioned_flag = False
-            self.write_to_file = False
             self.telemetry_objects = ''
             self.ontology_substitution = ''
             self.units_exchange = ''
@@ -108,6 +169,14 @@ class UDMIDiscovery():
             self.GCP_registry = None
             self.GCP_device = None
             self.should_backoff = True
+
+            self.discovery_type = None
+            self.generation = None
+            self.enumeration = False
+            self.scan_triggered = False
+            self.discovery_scan_interval = None
+            self.discovery_scan_duration = None
+            self.scan_timeout = datetime.datetime.utcnow()
 
         except Exception as error:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -245,94 +314,91 @@ class UDMIDiscovery():
                 # read in configuration JSON
 
                 try:
-                    with open(self.configuration_file) as json_file:  
+                    with open(self.configuration_file) as json_file:
                         self.config = json.load(json_file)
 
-                    self.server = self.config["server"]
-                    self.site = self.config["site"]
-                    self.username = self.config["username"]
-                    self.password = base64.b64decode(self.config["password"]).decode('utf-8')
-                    self.eweb_id = self.config["eweb-id"]
-                    self.gateway_id = self.config["gateway-id"]
-                    self.gateway_addr = self.config["gateway-addr"]
+                    self.server = self.config['server']
+                    self.site = self.config['site']
+                    self.username = self.config['username']
+                    self.password = base64.b64decode(self.config['password']).decode('utf-8')
+                    self.eweb_id = self.config['eweb-id']
+                    self.gateway_id = self.config['gateway-id']
+                    self.gateway_addr = self.config['gateway-addr']
 
                     if "omit-devices" in self.config:
-                        self.omit_devices = self.config["omit-devices"]
+                        self.omit_devices = self.config['omit-devices']
                     else:
                         self.omit_devices = None
 
                     if "telemetry" in self.config:
-                        if os.path.exists(self.config["telemetry"]):
+                        if os.path.exists(self.config['telemetry']):
                             try:
-                                with open(self.config["telemetry"]) as json_file:
+                                with open(self.config['telemetry']) as json_file:
                                     self.telemetry_objects = json.load(json_file)
 
                             except:
-                                raise Exception ("Error with Telemetry Dictionary {}".format(self.config["telemetry"]))
+                                raise Exception ("Error with Telemetry Dictionary {}".format(self.config['telemetry']))
 
                     if "substitution" in self.config:
-                        if os.path.exists(self.config["substitution"]):
+                        if os.path.exists(self.config['substitution']):
                             try:
-                                with open(self.config["substitution"]) as io_file:
+                                with open(self.config['substitution']) as io_file:
                                     self.ontology_substitution = io_file.readlines()
 
                             except:
-                                raise Exception ("Error with Ontology Substitution List {}".format(self.config["substitution"]))
+                                raise Exception ("Error with Ontology Substitution List {}".format(self.config['substitution']))
 
                     if "units" in self.config:
-                        if os.path.exists(self.config["units"]):
+                        if os.path.exists(self.config['units']):
                             try:
-                                with open(self.config["units"], encoding='utf-8') as json_file:
+                                with open(self.config['units'], encoding='utf-8') as json_file:
                                     self.units_exchange = json.load(json_file)
 
                             except:
-                                raise Exception ("Error with Units Exchange Dictionary {}".format(self.config["units"]))
+                                raise Exception ("Error with Units Exchange Dictionary {}".format(self.config['units']))
 
                     if "excludes" in self.config:
-                        if os.path.exists(self.config["excludes"]):
+                        if os.path.exists(self.config['excludes']):
                             try:
-                                with open(self.config["excludes"]) as io_file:
+                                with open(self.config['excludes']) as io_file:
                                     self.excludes = io_file.readlines()
 
                             except:
-                                raise Exception ("Error with Excludes List {}".format(self.config["excludes"]))
+                                raise Exception ("Error with Excludes List {}".format(self.config['excludes']))
 
                     if "dev-xref" in self.config:
-                        if os.path.exists(self.config["dev-xref"]):
+                        if os.path.exists(self.config['dev-xref']):
                             try:
-                                with open(self.config["dev-xref"]) as json_file:
+                                with open(self.config['dev-xref']) as json_file:
                                     self.xref = json.load(json_file)
 
                             except:
-                                raise Exception ("Error with Device XRef List {}".format(self.config["dev-xref"]))
+                                raise Exception ("Error with Device XRef List {}".format(self.config['dev-xref']))
 
                     if "use-tags" in self.config:
-                        self.use_tagging = True if self.config["use-tags"] in TRUE_LIST else False
+                        self.use_tagging = True if self.config['use-tags'] in TRUE_LIST else False
                         self.ontology = DigitalBuildingsOntology()
                         self.entities = self.ontology.entityTypes
                     else:
                         self.use_tagging = False
 
                     if "read-file-data" in self.config:
-                        self.read_file_data = True if self.config["read-file-data"] in TRUE_LIST else False
+                        self.read_file_data = True if self.config['read-file-data'] in TRUE_LIST else False
 
                     if "commissioned-flag" in self.config:
-                        self.commissioned_flag = True if self.config["commissioned-flag"] in TRUE_LIST else False
-
-                    if "write=to=file" in self.config:
-                        self.write_to_file = True if self.config["write-to-file"] in TRUE_LIST else False
+                        self.commissioned_flag = True if self.config['commissioned-flag'] in TRUE_LIST else False
 
                     if "mqtt-config" in self.config:
-                        if os.path.exists(self.config["mqtt-config"]):
-                            with open(self.config["mqtt-config"]) as json_file:  
+                        if os.path.exists(self.config['mqtt-config']):
+                            with open(self.config['mqtt-config']) as json_file:  
                                 self.mqtt_config = json.load(json_file)
 
-                            self.GCP_hostName = self.mqtt_config["hostName"]
-                            self.GCP_tcpPort = self.mqtt_config["tcpPort"]
-                            self.GCP_location = self.mqtt_config["location"]
-                            self.GCP_project = self.mqtt_config["project"]
-                            self.GCP_registry = self.mqtt_config["registry"]
-                            self.GCP_device = self.mqtt_config["device"]
+                            self.GCP_hostName = self.mqtt_config['hostName']
+                            self.GCP_tcpPort = self.mqtt_config['tcpPort']
+                            self.GCP_location = self.mqtt_config['location']
+                            self.GCP_project = self.mqtt_config['project']
+                            self.GCP_registry = self.mqtt_config['registry']
+                            self.GCP_device = self.mqtt_config['device']
 
                 except:
                     raise Exception ("Error Configuration file {}".format(self.configuration_file))
@@ -349,6 +415,43 @@ class UDMIDiscovery():
                 raise Exception("{error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno))
             else:
                 raise Exception("{error}".format(error=error))
+
+    def configuration_changed(self):
+        # Check to see if there are configuration changes. 
+        #   :return: boolean: True configuration file changed, False configuration file did not change
+
+        result = False
+
+        if not self.configuration_loaded:
+            self.printd("self.configuration = False",level=2)
+            return True
+            
+        if  self.mqtt_client is None:
+            self.printd("self.mqtt_client = False",level=2)
+            return True
+            
+        try:
+            with open(self.configuration_file) as json_file:
+                config_string = json.load(json_file)
+
+                if config_string != self.config:
+                    self.printd("Config changed: <old> - <new>: <{}> <{}>".format(self.config, config_string), level=1)
+                    self.config = config_string
+                    result = True
+
+        except Exception as error:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            user_error = "Configuration change check"
+            self.__logError(message="{} Error".format(user_error), filename=filename, linenumber=exc_tb.tb_lineno, level=1)
+            if self.debug > 0:
+                raise Exception("{user}: {error} - {file}:{line}".format(user=user_error, error=error, file=filename, line=exc_tb.tb_lineno))
+            else:
+                raise Exception("{user}".format(user=user_error))
+
+        return result
+
 
     def create_jwt(self, project_id, private_key_file, algorithm):
         # Creates a JWT (https://jwt.io) to establish an MQTT connection.
@@ -409,7 +512,7 @@ class UDMIDiscovery():
             for k in fils:
                 if 'file' in k:
                     # write the public key to FIL
-                    public_key_object = fils[k]["displayName"]
+                    public_key_object = fils[k]['displayName']
                     if public_key_object == self.PUBLIC_KEY_FIL_NAME:
                         # update file_data.diskpath property of FIL object
                         found_public_key = True
@@ -475,6 +578,7 @@ class UDMIDiscovery():
         except Exception as error:
             pass
 
+
     def put_to_api(self, json_data):
         max_retries = 3
         try_no = 1
@@ -492,6 +596,44 @@ class UDMIDiscovery():
             
             return res
         
+        except Exception as error:
+            pass
+
+    def process_device_message(self,dev_id,topic_type,message_dict):
+        try:
+            self.printd("Received Message on '{}' topic".format(topic_type),level=3)
+            if topic_type == 'config':
+                self.discovery_type = None
+                self.generation = None
+                self.scan_triggered = False
+                self.discovery_scan_interval = None
+                self.discovery_scan_duration = None
+                self.enumeration = False
+                json_config = message_dict
+                self.last_config = json_config['timestamp']
+                self.config_gateway = json_config['gateway']
+                if 'gateway' in json_config \
+                and 'discovery' in json_config['gateway'] \
+                and 'families' in json_config['gateway']['discovery'] \
+                and 'bacnet' in json_config['gateway']['discovery']['families']:
+                    if 'generation' in json_config['gateway']['discovery']['families']['bacnet']:
+                        self.discovery_type = EXPLICIT_SCAN
+                        self.generation = json_config['gateway']['discovery']['families']['bacnet']['generation']
+                        self.scan_triggered = True
+                        if 'enumerate' in json_config['gateway']['discovery']['families']['bacnet']:
+                            self.discovery_type = IMPLICIT_SCAN
+                            self.enumeration = json_config['gateway']['discovery']['families']['bacnet']['enumerate']
+                        elif 'scan_interval_sec' in json_config['gateway']['discovery']['families']['bacnet'] \
+                        and 'scan_duration_sec' in json_config['gateway']['discovery']['families']['bacnet']:
+                            self.discovery_type = PERIODIC_SCAN
+                            self.discovery_scan_interval = json_config['gateway']['discovery']['families']['bacnet']['scan_interval_sec']
+                            self.discovery_scan_duration = json_config['gateway']['discovery']['families']['bacnet']['scan_duration_sec']
+                            self.enumeration = json_config['gateway']['discovery']['families']['bacnet']['enumerate']
+                    elif 'scan_interval_sec' in json_config['gateway']['discovery']['families']['bacnet']:
+                        # CONTINUOUS SCAN not supported
+                        self.discovery_type = CONTINUOUS_SCAN
+                        self.discovery_scan_interval = json_config['gateway']['discovery']['families']['bacnet']['scan_interval_sec']
+
         except Exception as error:
             pass
 
@@ -555,9 +697,11 @@ class UDMIDiscovery():
     def on_message(self, unused_client, unused_userdata, message):
         # Callback when the device receives a message on a subscription
         message_str = message.payload.decode('utf-8')
-#        message_dict = json.loads(message.payload)
+        message_dict = json.loads(message.payload)
         self.printd("Google MQTT MESSAGE received topic: <{topic}>   message: <{message}>".format(topic=message.topic, message=message_str), level=4)
-        self.__logError(message="MQTT MESSAGE from : <{topic}>".format(topic=message.topic), level=4)
+        sp_topic = message.topic.split('/')
+        if sp_topic[2] == self.GCP_device:
+            self.process_device_message(sp_topic[2],sp_topic[3],message_dict)
 
 
     def get_mqtt_client(
@@ -602,11 +746,269 @@ class UDMIDiscovery():
         return client
 
 
+    def run_discovery(self, discover_points=False):
+        try:
+            device_no = 0
+            object_no = 0
+
+            # Construct URL from settings
+            self.url = "{}/enteliweb/api/.bacnet/{}?alt=json".format(self.server, self.site)
+
+            # Call Get Request to retreive all devices from the current site
+            res = self.get_from_api()
+
+            devices = json.loads(res.text)
+            self.device_count = len(devices)
+
+            # Read Metadata templates
+            self.state_metadata = DEFAULT_STATE_METADATA_TEMPLATE
+            self.metadata = DEFAULT_METADATA_TEMPLATE
+
+            for dev in devices:
+                device_no += 1
+                str_dev_id = dev
+                if str_dev_id.isnumeric():
+                    str_dname = str(devices[dev]['displayName'])
+                    if str_dname in self.xref.keys():
+                        str_dname = self.xref[str_dname]
+                    print ("Name = {} ({}/{})".format(str_dname,device_no,self.device_count))
+                    # Get the Vendor Id
+                    self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/vendor-identifier?alt=json".format(self.server, self.site, dev, dev)
+                    res = self.get_from_api()
+                    if res.status_code != 200:
+                        self.printd("Failed to GET BACnet Device Vendor_Identifier from eWeb API (Error = {})".format(res.status_code),level=0)
+                        vendor_identifier = {"value": "N/A"}
+                    else:
+                        vendor_identifier = json.loads(res.text)
+                    # Check to see if this is a device that we should skip
+                    self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/model-name?alt=json".format(self.server, self.site, dev, dev)
+                    res = self.get_from_api()
+                    if res.status_code != 200:
+                        self.printd("Failed to GET BACnet Device Model_Name from eWeb API (Error = {})".format(res.status_code),level=0)
+                        model_name = {"value": "N/A"}
+                    else:
+                        model_name = json.loads(res.text)
+                    if not model_name['value'] in self.omit_devices:
+                        # Get firmware version and serial number (if we can)
+                        self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/application_software_version?alt=json".format(self.server, self.site, dev, dev)
+                        res = self.get_from_api()
+                        if res.status_code != 200:
+                            self.printd("Failed to GET BACnet Device Firmware Version from eWeb API (Error = {})".format(res.status_code),level=0)
+                            firmware_version = {"value": "N/A"}
+                        else:
+                            firmware_version = json.loads(res.text)
+                        self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/serial_number?alt=json".format(self.server, self.site, dev, dev)
+                        res = self.get_from_api()
+                        if res.status_code != 200:
+                            self.printd("Failed to GET BACnet Device Serial Number from eWeb API (Error = {})".format(res.status_code),level=0)
+                            serial_no = {"value": "N/A"}
+                        else:
+                            serial_no = json.loads(res.text)
+
+                        ipv4_address = {"value": "N/A"}
+                        mac_address = {"value": "N/A"}
+                        if vendor_identifier['value'] == "8":
+                            # This is a Delta Controls device so check NP4 for the Ethernet/IP parameters
+                            self.url = "{}/enteliweb/api/.bacnet/{}/{}/NP,{}/ip_address?alt=json".format(self.server, self.site, dev, 4)
+                            res = self.get_from_api()
+                            if res.status_code != 200:
+                                self.printd("Failed to GET Device IPV4 Address from eWeb API (Error = {})".format(res.status_code),level=0)
+                            else:
+                                ipv4_address = json.loads(res.text)
+                            self.url = "{}/enteliweb/api/.bacnet/{}/{}/NP,{}/mac_address?alt=json".format(self.server, self.site, dev, 4)
+                            res = self.get_from_api()
+                            if res.status_code != 200:
+                                self.printd("Failed to GET Device MAC Address from eWeb API (Error = {})".format(res.status_code),level=0)
+                            else:
+                                mac_address = json.loads(res.text)
+
+                        # Check format of Device Name - no spaces, no underscores
+                        str_dname = str_dname.replace(' ', '-')
+                        str_dname = str_dname.replace('_', '-')
+
+                        meta = json.loads(self.metadata)
+                        meta['local_id'] = str_dev_id
+
+                        if discover_points:
+                            meta['points'] = {}
+                            # Call Get Request to retreive all objects from the current Device
+                            self.url = "{}/enteliweb/api/.bacnet/{}/{}?alt=json".format(self.server, self.site, dev)
+                            res = self.get_from_api()
+                            if res.status_code != 200:
+                                self.printd("Failed to GET BACnet Object list from eWeb API (Error = {} - Using empty set)".format(res.status_code),level=0)
+                                objects = {}
+                            objects = json.loads(res.text)
+                            self.object_count = len(objects)
+                            object_no = 0
+                            for obj in objects:
+                                object_no += 1
+                                sp_obj = obj.split(',')
+                                if sp_obj[0] in self.telemetry_objects.keys():
+                                    if self.commissioned_flag:
+                                        # If this is a Delta Controls (Vendor Id = 8) device AND the Commissioned Flag is Set, include in the telemetry
+                                        if vendor_identifier['value'] == "8":
+                                            # This is a Delta Controls device - check the 'Commissioned Flag' to include in Telemetry
+                                            if firmware_version['value'] =="N/A":
+                                                self.printd("Failed to GET BACnet Device Application_Software_Version from eWeb API, forcing telemetry",level=2)
+                                                Commissioned = True # Force telemetry
+                                            else:
+                                                if firmware_version['value'].startswith('V3.'):
+                                                    if sp_obj[0] in ['analog-input','analog-output','binary-input','binary-output','multistate-input','multistate-output']:
+                                                        self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/Commission_Flag?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                        res = self.get_from_api()
+                                                        if res.status_code != 200:
+                                                            self.printd("Failed to GET Commissioned Flag property eWeb API (Error = {})".format(res.status_code),level=0)
+                                                            break
+                                                        comm_flag = json.loads(res.text)
+                                                        Commissioned = True if comm_flag['value'] == "1" else False
+                                                    else:
+                                                        Commissioned = True # No Commissioned Flag on object - force telemetry
+                                                elif firmware_version['value'].startswith('4.'):
+                                                    self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/Commissioned?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                    res = self.get_from_api()
+                                                    if res.status_code != 200:
+                                                        self.printd("Failed to GET Commissioned Flag property eWeb API (Error = {})".format(res.status_code),level=0)
+                                                        break
+                                                    comm_flag = json.loads(res.text)
+                                                    Commissioned = True if comm_flag['value'] == "1" else False
+                                                else:
+                                                    self.printd("Unknown Delta Controls Application Software Version - forcing telemetry",level=2)
+                                                    Commissioned = True
+                                        else:
+                                            Commissioned = True # Not a DCI device - force telemetry
+                                    else:
+                                        Commissioned = True # enforced telemetry by config setting
+
+                                    if Commissioned:
+                                        str_obj = self.telemetry_objects[sp_obj[0]]
+                                        self.printd ("{} ({}/{}): Telemetry Object ({}/{}) Found - {} ({})".format(str_dname,device_no,self.device_count,object_no,self.object_count,objects[obj]['displayName'], sp_obj),level=2)
+
+                                        # Check format of Object Name - must be lower case, no spaces, no hyphens, no braces
+                                        str_oname = str(objects[obj]['displayName'])
+                                        str_oname = str_oname.lower()
+                                        for str_subst in self.ontology_substitution:
+                                            str_oname = str_oname.replace(str_subst.rstrip('\n'),'_')
+                                        str_oname = str_oname.rstrip('_')
+
+                                        ex_found = False
+                                        entity_found = False
+
+                                        for excl in self.excludes:
+                                            if excl.rstrip().lower() in str_oname:
+                                                ex_found = True
+                                                break
+
+                                        if self.use_tagging and not ex_found:
+                                            # Check to see if the object name is in our tag list
+                                            if self.ontology.checkForEntityType(str_oname):
+                                                entity_found = True
+
+                                        if (not self.use_tagging or (self.use_tagging and entity_found)) and not ex_found:
+                                            # Units
+                                            str_units = "No-units"
+                                            str_state_text = []
+                                            if 'analog' in sp_obj[0].lower():
+                                                # Call Get Request to retrieve units property for this object
+                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/units?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                res = self.get_from_api()
+                                                if res.status_code != 200:
+                                                    self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
+                                                    break
+                                                units = json.loads(res.text)
+                                                str_units = units['value']
+                                                if str_units in self.units_exchange.keys():
+                                                    str_units = self.units_exchange[str_units]
+                                                str_meta = '{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value","units": "' + str_units + '", "type" : "' + sp_obj[0].lower() + '"}'
+                                                meta['points'][str_oname] = json.loads(str_meta)
+                                            elif 'binary' in sp_obj[0].lower():
+                                                # Get Active and Inactive Text fields
+                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/active_text?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                res = self.get_from_api()
+                                                if res.status_code != 200:
+                                                    self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
+                                                    break
+                                                state_text = json.loads(res.text)
+                                                str_state_text.append(state_text['value'])
+                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/inactive_text?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                res = self.get_from_api()
+                                                if res.status_code != 200:
+                                                    self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
+                                                    break
+                                                state_text = json.loads(res.text)
+                                                str_state_text.append(state_text['value'])
+                                                str_meta = '{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value", "possible_values" : ["' + str_state_text[0] + '","' + str_state_text[1] + '"], "type" : "' + sp_obj[0].lower() + '"}'
+                                                meta['points'][str_oname] = json.loads(str_meta)
+                                            elif 'multi' in sp_obj[0].lower():
+                                                # Get State_Text fields
+                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/state_text?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                res = self.get_from_api()
+                                                if res.status_code != 200:
+                                                    self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
+                                                    break
+                                                res_dict = json.loads(res.text)
+                                                str_meta = '{"ref" : "' + str_obj + sp_obj[1] + '.present_value", "Possible_Values" : ['
+                                                need_comma = False
+                                                for st in res_dict:
+                                                    if st != "$base":
+                                                        if need_comma:
+                                                            str_meta += ', '
+                                                        str_meta += '"' + res_dict[st]['value'] + '"'
+                                                        need_comma = True
+                                                str_meta += '], "type" : "' + sp_obj[0].lower() + '"}'
+                                                meta['points'][str_oname] = json.loads(str_meta)
+                                            elif 'character' in sp_obj[0].lower():
+                                                # Call Get Request to retrieve units property for this object
+                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/units?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
+                                                res = self.get_from_api()
+                                                if res.status_code != 200:
+                                                    self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
+                                                    break
+                                                units = json.loads(res.text)
+                                                str_meta = '{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value", "type" : "' + sp_obj[0].lower() + '"}'
+                                                meta['points'][str_oname] = json.loads(str_meta)
+                                            else:
+                                                str_units = "No-units"
+                                                meta['points'][str_oname] = json.loads('{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value","units": "' + str_units + '"}')
+
+                        else:
+                            meta.pop('points')
+
+                        st_meta = json.loads(self.state_metadata)
+                        st_meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        st_meta['system']['make_model'] = model_name['value']
+                        st_meta['system']['firmware']['version'] = firmware_version['value']
+                        st_meta['serial_no'] = serial_no['value']
+                        st_meta['last_config'] = self.last_config
+                        st_meta['gateway']['discovery']['families']['bacnet']['generation'] = self.config_gateway['discovery']['families']['bacnet']['generation']
+                        st_meta['gateway']['discovery']['families']['bacnet']["active"] = True
+                        st_meta_topic = self.state_topic.format(GWID=self.GCP_device)
+                        self.mqtt_client.publish(st_meta_topic,json.dumps(st_meta,indent=2))
+                        self.printd("State message - publishing: \n{} \nto:{}".format(json.dumps(st_meta,indent=2), st_meta_topic), level=1)
+
+                        meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        meta['generation'] = self.generation
+                        meta['families']['iot']['id'] = str_dname
+                        meta['families']['bacnet']['id'] = dev
+                        meta['families']['ipv4']['id'] = ipv4_address['value']
+                        meta['families']['mac']['id'] = mac_address['value']
+                        meta_topic = self.events_discovery_topic.format(GWID=self.GCP_device)
+                        self.mqtt_client.publish(meta_topic, json.dumps(meta,indent=2))
+                        self.printd("Discovery event - publishing: \n{} \nto:{}".format(json.dumps(meta,indent=2), meta_topic), level=1)
+
+        except Exception as error:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            self.configuration_loaded = False
+
+            if self.debug > 0:
+                raise Exception("{error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno))
+            else:
+                raise Exception("{error}".format(error=error))
+
+
     def run(self):
         # Queries eWeb REST API for devices then for each device creates a DAQ Registrar Folder/file structure
-
-        device_no = 0
-        object_no = 0
 
         try:
             self.load_configuration()
@@ -618,8 +1020,6 @@ class UDMIDiscovery():
 
         if self.configuration_loaded:
             try:
-                self.db_synchronize()
-
                 self.printd("self.configuration_loaded; Connecting to MQTT",level=2)
                 self.__logError(message="self.configuration_loaded; Connecting to MQTT", level=1)
                 jwt_iat = datetime.datetime.utcnow()
@@ -642,242 +1042,133 @@ class UDMIDiscovery():
 
             time.sleep(self.MQTT_BACKOFF_TIME)
 
-            if self.should_backoff == False:
-                # Connected to IoT Core
+            while True:
                 try:
                     self.db_synchronize()
 
-                    # Construct URL from settings
-                    self.url = "{}/enteliweb/api/.bacnet/{}?alt=json".format(self.server, self.site)
+                except Exception as error:
+                    self.printd("DB synchronize error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                    self.__logError(message="DB Synchronize error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                    continue
 
-                    # Call Get Request to retreive all devices from the current site
-                    res = self.get_from_api()
-
-                    devices = json.loads(res.text)
-                    self.device_count = len(devices)
-
-                    # Read Metadata template
-                    self.metadata = {}
-                    if os.path.exists(self.metadata_template):
-                        with open(self.metadata_template) as json_file:  
-                            self.metadata = json.load (json_file)
-                    elif "system" in self.config:
-                        self.metadata["system"] = self.config["system"]
-                    else:
-                        self.metadata["system"] = DEFAULT_METADATA_TEMPLATE
-
-                    if self.write_to_file:
-                        # Create 'misc' folder
-                        if not os.path.exists('misc'):
-                            os.makedirs('misc')
-
-                        # Create site folder in 'misc'
-                        site_folder = self.site.lower()
-                        site_folder = site_folder.replace(' ', '_')
-                        site_folder = 'misc/{}'.format(site_folder)
-                        if not os.path.exists(site_folder):
-                            os.makedirs(site_folder)
-                        # Create 'devices'  folder in 'misc/{site}'
-                        if not os.path.exists('{}/devices'.format(site_folder)):
-                            os.makedirs('{}/devices'.format(site_folder))
-
-                    gw_meta = dict(self.metadata)
-#                    gw_meta["version"] = self.metadata["version"]
-#                    gw_meta["timestamp"] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-#                    gw_meta["hash"] = self.metadata["hash"]
-#                    gw_meta["system"] = self.metadata["system"]
-                    str_gwname = self.gateway_id
-
-                    str_gw_meta = '{"proxy_ids": ['
-                    gw_meta_need_comma = False
-                    for dev in devices:
-                        device_no += 1
-                        str_dev_id = dev
-                        if str_dev_id.isnumeric():
-                            str_dname = str(devices[dev]["displayName"])
-                            if str_dname in self.xref.keys():
-                                str_dname = self.xref[str_dname]
-                            print ("Name = {} ({}/{})".format(str_dname,device_no,self.device_count))
-                            # Get the Vendor Id
-                            self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/vendor-identifier?alt=json".format(self.server, self.site, dev, dev)
-                            res = self.get_from_api()
-                            if res.status_code != 200:
-                                self.printd("Failed to GET BACnet Device Vendor_Identifier from eWeb API (Error = {})".format(res.status_code),level=0)
-                                vendor_identifier = {}
-                            else:
-                                vendor_identifier = json.loads(res.text)
-                            # Check to see if this is a device that we should skip
-                            self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/model-name?alt=json".format(self.server, self.site, dev, dev)
-                            res = self.get_from_api()
-                            if res.status_code != 200:
-                                self.printd("Failed to GET BACnet Device Model_Name from eWeb API (Error = {})".format(res.status_code),level=0)
-                                model_name = {}
-                            else:
-                                model_name = json.loads(res.text)
-                            if not model_name["value"] in self.omit_devices:
-                                # Add proxy device to list in Gateway Metadata Config Block
-                                if gw_meta_need_comma:
-                                    str_gw_meta += ','
-                                else:
-                                    gw_meta_need_comma = True
-                                str_gw_meta += '"' + str_dname + '"'
-
-                                # Check format of Device Name - no spaces, no underscores
-                                str_dname = str_dname.replace(' ', '-')
-                                str_dname = str_dname.replace('_', '-')
-
-                                if self.write_to_file:
-                                    # Create device folder in 'misc/{site}/devices'
-                                    device_folder = '{}/devices/{}'.format(site_folder,str_dname)
-                                    if not os.path.exists(device_folder):
-                                        os.makedirs(device_folder)
-
-                                meta = dict(self.metadata)
-                                meta["points"] = {}
-                                meta["local_id"] = str_dev_id
-
-                                # Call Get Request to retreive all objects from the current Device
-                                self.url = "{}/enteliweb/api/.bacnet/{}/{}?alt=json".format(self.server, self.site, dev)
-                                res = self.get_from_api()
-                                if res.status_code != 200:
-                                    self.printd("Failed to GET BACnet Object list from eWeb API (Error = {} - Using empty set)".format(res.status_code),level=0)
-                                    objects = {}
-                                objects = json.loads(res.text)
-                                self.object_count = len(objects)
-                                object_no = 0
-                                for obj in objects:
-                                    object_no += 1
-                                    sp_obj = obj.split(',')
-                                    if sp_obj[0] in self.telemetry_objects.keys():
-                                        if self.commissioned_flag:
-                                            # If this is a Delta Controls (Vendor Id = 8) device AND the Commissioned Flag is Set, include in the telemetry
-                                            if vendor_identifier["value"] == "8":
-                                                # This is a Delta Controls device - check the 'Commissioned Flag' to include in Telemetry
-                                                # Get the Application Software Version
-                                                self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/application_software_version?alt=json".format(self.server, self.site, dev, dev)
-                                                res = self.get_from_api()
-                                                if res.status_code != 200:
-                                                    self.printd("Failed to GET BACnet Device Application_Software_Version from eWeb API (Error = {})".format(res.status_code),level=0)
-                                                    Commissioned = True # Force telemetry
-                                                else:
-                                                    app_sw = json.loads(res.text)
-                                                    if app_sw["value"].startswith('V3.'):
-                                                        if sp_obj[0] in ['analog-input','analog-output','binary-input','binary-output','multistate-input','multistate-output']:
-                                                            self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/Commission_Flag?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
-                                                            res = self.get_from_api()
-                                                            if res.status_code != 200:
-                                                                self.printd("Failed to GET Commissioned Flag property eWeb API (Error = {})".format(res.status_code),level=0)
-                                                                break
-                                                            comm_flag = json.loads(res.text)
-                                                            Commissioned = True if comm_flag["value"] == "1" else False
-                                                        else:
-                                                            Commissioned = True # No Commissioned Flag on object - force telemetry
-                                                    elif app_sw["value"].startswith('4.'):
-                                                        self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/Commissioned?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
-                                                        res = self.get_from_api()
-                                                        if res.status_code != 200:
-                                                            self.printd("Failed to GET Commissioned Flag property eWeb API (Error = {})".format(res.status_code),level=0)
-                                                            break
-                                                        comm_flag = json.loads(res.text)
-                                                        Commissioned = True if comm_flag["value"] == "1" else False
-                                                    else:
-                                                        self.printd("Unknown Delta Controls Application Software Version - forcing telemetry",level=2)
-                                                        Commissioned = True
-                                            else:
-                                                Commissioned = True # Not a DCI device - force telemetry
-                                        else:
-                                            Commissioned = True # enforced telemetry by config setting
-
-                                        if Commissioned:
-                                            str_obj = self.telemetry_objects[sp_obj[0]]
-                                            self.printd ("{} ({}/{}): Telemetry Object ({}/{}) Found - {} ({})".format(str_dname,device_no,self.device_count,object_no,self.object_count,objects[obj]["displayName"], sp_obj),level=2)
-
-                                            # Check format of Object Name - must be lower case, no spaces, no hyphens, no braces
-                                            str_oname = str(objects[obj]["displayName"])
-                                            str_oname = str_oname.lower()
-                                            for str_subst in self.ontology_substitution:
-                                                str_oname = str_oname.replace(str_subst.rstrip('\n'),'_')
-                                            str_oname = str_oname.rstrip('_')
-
-                                            ex_found = False
-                                            entity_found = False
-
-                                            for excl in self.excludes:
-                                                if excl.rstrip().lower() in str_oname:
-                                                    ex_found = True
-                                                    break
-
-                                            if self.use_tagging and not ex_found:
-                                                # Check to see if the object name is in our tag list
-                                                if self.ontology.checkForEntityType(str_oname):
-                                                    entity_found = True
-
-                                            if (not self.use_tagging or (self.use_tagging and entity_found)) and not ex_found:
-                                                # Units
-                                                if 'analog' in sp_obj[0].lower():
-                                                    # Call Get Request to retrieve units property for this object
-                                                    self.url = "{}/enteliweb/api/.bacnet/{}/{}/{},{}/units?alt=json".format(self.server, self.site, dev, sp_obj[0], sp_obj[1])
-                                                    res = self.get_from_api()
-                                                    if res.status_code != 200:
-                                                        self.printd("Failed to GET Units property from eWeb API (Error = {})".format(res.status_code),level=0)
-                                                        break
-                                                    units = json.loads(res.text)
-                                                    str_units = units["value"]
-                                                    if str_units in self.units_exchange.keys():
-                                                        str_units = self.units_exchange[str_units]
-                                                    else:
-                                                        str_units = 'No-units'
-                                                else:
-                                                    str_units = "No-units"
-
-                                                meta["points"][str_oname] = json.loads('{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value","units": "' + str_units + '"}')
-
-                                if self.write_to_file:
-                                    # Create metadata file
-                                    metafile = '{}/devices/{}/{}'.format(site_folder,str_dname,METADATA_FILE)
-                                    with open (metafile, "w") as outfile:
-                                        json.dump(meta, outfile, indent=2)
-                                meta["timestamp"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-#                                meta_topic = self.metadata_topic.format(GWID=self.GCP_device, DID=str_dname)
-#                                self.printd("Publishing metadata to {}".format(meta_topic),level=2)
-#                                self.mqtt_client.publish(meta_topic,json.dumps(meta,indent=2))
-                                meta_topic = self.state_telemetry_topic.format(GWID=self.GCP_device)
-                                self.mqtt_client.publish(meta_topic,json.dumps(meta,indent=2))
-                    str_gw_meta += ']}'
-
-#                    if self.write_to_file:
-                        # Write Gateway metafile
-                        # Create gateway device folder in 'misc/{site}/devices'
-#                        del gw_meta["pointset"]
-#                        del gw_meta["localnet"]
-#                        gw_meta["gateway"] = json.loads(str_gw_meta)
-#                        gw_meta["system"]["physical_tag"]["asset"]["name"] = str_gwname
-#                        gw_meta["cloud"] = {'auth_type': 'RS256'}
-#                        device_folder = '{}/devices/{}'.format(site_folder,self.gateway_id)
-#                        if not os.path.exists(device_folder):
-#                            os.makedirs(device_folder)
-#                        metafile = '{}/devices/{}/{}'.format(site_folder,self.gateway_id,METADATA_FILE)
-#                        with open (metafile, "w") as outfile:
-#                            json.dump(gw_meta, outfile, indent=2)
-#                        if self.public_key != '':
-#                            rsafile = '{}/devices/{}/{}'.format(site_folder,self.gateway_id,RSA_PUBLIC_FILE)
-#                            with open (rsafile, "w") as outfile:
-#                                outfile.write(self.public_key)
+                try:
+                    config_changed = self.configuration_changed()
 
                 except Exception as error:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    self.printd("Checking Configuration changed error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                    self.__logError(message="Checking Configuration changed error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                    continue
+                
+                if config_changed:
+                    try:
+                        self.printd("Config changed load config", level=1)
+                        if self.mqtt_client != None:
+                            self.mqtt_client.disconnect()
+                            time.sleep(self.MQTT_BACKOFF_TIME)
+                            self.mqtt_client = None
+                        self.load_configuration()
+                        self.printd("New configuration loaded", level=1)
+                        self.__logError("New configuration loaded", level=2)
+                        self.telemetry_delay = datetime.datetime.utcnow()
 
-                    self.configuration_loaded = False
+                    except Exception as error:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        self.printd("Configuration load error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                        self.__logError(message="Configuration load error: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                        continue
 
-                    if self.debug > 0:
-                        raise Exception("{error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno))
-                    else:
-                        raise Exception("{error}".format(error=error))
+                    try:
+                        if self.configuration_loaded:
+                            self.printd("config_changed; Reconnecting to MQTT",level=2)
 
-            else:
-                self.printd("Not connected to IoT Core - Discovery aborted\n", level=1)
-        
+                            if self.mqtt_client:
+                                self.mqtt_client.disconnect()
+                                time.sleep(self.MQTT_BACKOFF_TIME)
+
+                            jwt_iat = datetime.datetime.utcnow()
+                            self.mqtt_client = self.get_mqtt_client(
+                                self.GCP_project, self.GCP_location, self.GCP_registry,
+                                self.GCP_device, self.private_key_path, "RS256",
+                                self.google_roots_path, self.GCP_hostName, self.GCP_tcpPort)
+
+                    except Exception as error:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        self.printd("Error connecting to MQTT: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                        self.__logError(message="Error connecting to MQTT: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                        continue
+
+                # Wait if backoff is required.
+                if self.configuration_loaded and self.should_backoff:
+                    #  wait and connect again.
+                    delay = self.minimum_backoff_time + random.randint(0, 1000) / 1000.0
+                    self.printd('Waiting for {} before reconnecting.'.format(delay), level=2)
+                    time.sleep(delay)
+                    if self.minimum_backoff_time < self.MAXIMUM_BACKOFF_TIME:
+                        self.minimum_backoff_time *= 2
+                    try:
+                        if self.config:
+                            self.printd("self.should_backoff; Connecting to MQTT",level=2)
+                            jwt_iat = datetime.datetime.utcnow()
+                            self.mqtt_client = self.get_mqtt_client(
+                                self.GCP_project, self.GCP_location, self.GCP_registry,
+                                self.GCP_device, self.private_key_path, "RS256",
+                                self.google_roots_path, self.GCP_hostName, self.GCP_tcpPort)
+                            time.sleep(self.MQTT_BACKOFF_TIME)
+
+                    except Exception as error:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        self.printd("Error connecting to MQTT after backoff: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                        self.__logError(message="Error connecting to MQTT after backoff: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                        continue
+
+                # [START iot_mqtt_jwt_refresh]
+                if self.configuration_loaded:
+                    seconds_since_issue = (datetime.datetime.utcnow() - jwt_iat).seconds
+                    if seconds_since_issue > 60 * self.JWT_EXP_MINS:
+                        try:
+                            self.printd("JWT Expired; Connecting to MQTT",level=2)
+                            self.printd(('Refreshing token after {}s').format(seconds_since_issue), level=2)
+                            jwt_iat = datetime.datetime.utcnow()
+                            self.telemetry_delay = jwt_iat
+                            self.mqtt_client.disconnect()
+
+                            # Backoff to allow MQTT IoT Connection to settle
+                            time.sleep(self.MQTT_BACKOFF_TIME)
+
+                            self.mqtt_client = self.get_mqtt_client(
+                                self.GCP_project, self.GCP_location, self.GCP_registry,
+                                self.GCP_device, self.private_key_path, "RS256", 
+                                self.google_roots_path, self.GCP_hostName, self.GCP_tcpPort)
+                            self.telemetry_delay = datetime.datetime.utcnow()
+
+                        except Exception as error:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                            self.printd("Error connecting to MQTT after JWT refresh: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level = 2)
+                            self.__logError(message="Error connecting to MQTT after JWT refresh: {error} - {file}:{line}".format(error=error, file=filename, line=exc_tb.tb_lineno), level=1)
+                            continue
+
+                if self.should_backoff == False:
+                    # Connected to IoT Core
+                    if self.generation != None:
+                        if datetime.datetime.utcnow() >= datetime.datetime.strptime(self.generation,"%Y-%m-%dT%H:%M:%SZ"):
+                            if self.discovery_type in (PERIODIC_SCAN):
+                                if datetime.datetime.utcnow() > self.scan_timeout:
+                                    dt_delay = datetime.timedelta(seconds=self.discovery_scan_interval if self.discovery_type == 'Periodic Scan' else 0)
+                                    self.scan_timeout = datetime.datetime.utcnow() + dt_delay
+                                    self.run_discovery(self.enumeration)
+                            elif self.scan_triggered and self.discovery_type in (EXPLICIT_SCAN, IMPLICIT_SCAN):
+                                self.scan_triggered = False
+                                self.run_discovery(self.enumeration)
+
+        else:
+            self.printd("Not connected to IoT Core - Discovery aborted\n", level=1)
+
 
 def parse_command_line_args():
     #Parse command line arguments

@@ -1,0 +1,859 @@
+UDMI Discovery Initialised
+Default google roots path: C:\Partners\Google\Digital Buildings\udmi-discovery\Certificates\google_roots.pem
+Checking private key in /var/lib/DeltaControls\Certificates\Google Cloud MQTT\rsa_private.pem...
+Configuration Path=udmi-config.json
+self.configuration_loaded; Connecting to MQTT
+Device client_id is 'projects/bacnet-gateway/locations/europe-west1/registries/test-registry/devices/GAMA-1'
+Creating JWT using RS256 from private key file /var/lib/DeltaControls\Certificates\Google Cloud MQTT\rsa_private.pem
+Connecting to mqtt.googleapis.com:8883
+Return Code = 0
+On Connect: Connection Accepted. - [0]
+Subscribing to /devices/GAMA-1/config
+Subscribing to /devices/GAMA-1/commands/#
+Subscribing to /devices/GAMA-1/errors
+Google MQTT MESSAGE received topic: </devices/GAMA-1/config>   message: <{
+  "version": 1,
+  "timestamp": "2018-08-26T21:39:29.364Z",
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "enumerate": true,
+          "scan_interval_sec": 3600,
+          "scan_duration_sec": 300
+        }
+      }
+    }
+  }
+}>
+Received Message on 'config' topic
+Name = O3-DIN-CPU 1001000 (2/8)
+State message - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:19:20.611831Z",
+  "system": {
+    "make_model": "O3-DIN-CPU",
+    "firmware": {
+      "version": "4.12.1.7 (4120-001)"
+    },
+    "serial_no": "182732142",
+    "last_config": "2018-08-26T21:49:29.364Z",
+    "operational": true
+  },
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "active": true
+        }
+      }
+    }
+  },
+  "serial_no": "97837/0150",
+  "last_config": "2018-08-26T21:39:29.364Z"
+} 
+to:/devices/GAMA-1/state
+Discovery event - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:19:20.612828Z",
+  "generation": "2018-08-26T21:00:13Z",
+  "families": {
+    "iot": {
+      "id": "O3-DIN-CPU-1001000"
+    },
+    "bacnet": {
+      "id": "1001000"
+    },
+    "ipv4": {
+      "id": "0xc0a800ac"
+    },
+    "ipv6": {
+      "id": "N/A"
+    },
+    "mac": {
+      "id": "0x0040ae0698c6"
+    }
+  },
+  "points": {},
+  "local_id": "1001000"
+} 
+to:/devices/GAMA-1/events/discovery
+Name = Garage Controller (3/8)
+Garage-Controller (3/8): Telemetry Object (3/74) Found - Garage Temperature (['analog-input', '201001'])
+Garage-Controller (3/8): Telemetry Object (35/74) Found - Garage Door Command (['binary-output', '1101'])
+Garage-Controller (3/8): Telemetry Object (36/74) Found - Car Port Door Command (['binary-output', '1103'])
+Garage-Controller (3/8): Telemetry Object (37/74) Found - Garage Door (['binary-value', '1001'])
+Garage-Controller (3/8): Telemetry Object (38/74) Found - Car Port Door (['binary-value', '1002'])
+State message - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:19:28.209327Z",
+  "system": {
+    "make_model": "eBCON-2",
+    "firmware": {
+      "version": "4.9.0.1124 (490-001)"
+    },
+    "serial_no": "182732142",
+    "last_config": "2018-08-26T21:49:29.364Z",
+    "operational": true
+  },
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "active": true
+        }
+      }
+    }
+  },
+  "serial_no": "117034/0020",
+  "last_config": "2018-08-26T21:39:29.364Z"
+} 
+to:/devices/GAMA-1/state
+Discovery event - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:19:28.209327Z",
+  "generation": "2018-08-26T21:00:13Z",
+  "families": {
+    "iot": {
+      "id": "Garage-Controller"
+    },
+    "bacnet": {
+      "id": "1001001"
+    },
+    "ipv4": {
+      "id": "0xc0a80065"
+    },
+    "ipv6": {
+      "id": "N/A"
+    },
+    "mac": {
+      "id": "0x0040ae105a5c"
+    }
+  },
+  "points": {},
+  "local_id": "1001001"
+} 
+to:/devices/GAMA-1/events/discovery
+Name = FCU-303 (4/8)
+FCU-303 (4/8): Telemetry Object (3/133) Found - FCU_303 Room Temp (['analog-input', '1101'])
+FCU-303 (4/8): Telemetry Object (4/133) Found - FCU_303 Supply Air Temp (['analog-input', '1102'])
+FCU-303 (4/8): Telemetry Object (7/133) Found - FCU_303 Heating Valve (['analog-output', '1105'])
+FCU-303 (4/8): Telemetry Object (8/133) Found - FCU_303 Cooling Valve (['analog-output', '1106'])
+FCU-303 (4/8): Telemetry Object (9/133) Found - FCU_303 Fan Speed (['analog-output', '1107'])
+FCU-303 (4/8): Telemetry Object (14/133) Found - FCU_303 Setpoint (['analog-value', '1'])
+FCU-303 (4/8): Telemetry Object (15/133) Found - FCU_303 Min Fan Speed (['analog-value', '2'])
+FCU-303 (4/8): Telemetry Object (16/133) Found - FCU_303 Max Fan Speed (['analog-value', '3'])
+FCU-303 (4/8): Telemetry Object (17/133) Found - FCU_303 Design Fan Speed (['analog-value', '4'])
+FCU-303 (4/8): Telemetry Object (18/133) Found - FCU_303 Design Heating Valve Position (['analog-value', '5'])
+FCU-303 (4/8): Telemetry Object (19/133) Found - FCU_303 Design Cooling Valve Position (['analog-value', '6'])
+FCU-303 (4/8): Telemetry Object (20/133) Found - FCU_303 Mode_Mimic (['analog-value', '7'])
+FCU-303 (4/8): Telemetry Object (21/133) Found - FCU_303 Comfort KPI Score (Live) (['analog-value', '9991'])
+FCU-303 (4/8): Telemetry Object (22/133) Found - FCU_303 Comfort KPI Score (Yesterday) (['analog-value', '9992'])
+FCU-303 (4/8): Telemetry Object (49/133) Found - FCU_303 Fan Status (['binary-input', '1103'])
+FCU-303 (4/8): Telemetry Object (50/133) Found - FCU_303 Occupancy (['binary-input', '1104'])
+FCU-303 (4/8): Telemetry Object (51/133) Found - FCU_303 Enable (['binary-output', '1108'])
+FCU-303 (4/8): Telemetry Object (54/133) Found - FCU_303 BMS Remote (['binary-value', '1'])
+FCU-303 (4/8): Telemetry Object (55/133) Found - FCU_303 FCU Run Status (['binary-value', '2'])
+FCU-303 (4/8): Telemetry Object (56/133) Found - FCU_303 Within Bounds (['binary-value', '9991'])
+FCU-303 (4/8): Telemetry Object (57/133) Found - FCU_303 Valve Control Loop (['loop', '1'])
+FCU-303 (4/8): Telemetry Object (58/133) Found - FCU_303 Fan Control Loop (['loop', '2'])
+FCU-303 (4/8): Telemetry Object (110/133) Found - FCU_303 Mode (['multi-state-value', '1'])
+FCU-303 (4/8): Telemetry Object (126/133) Found - FCU_303 Times (['schedule', '1'])
+State message - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:20:05.080183Z",
+  "system": {
+    "make_model": "O3-DIN-CPU",
+    "firmware": {
+      "version": "4.12.1.8 (4120-001) D"
+    },
+    "serial_no": "182732142",
+    "last_config": "2018-08-26T21:49:29.364Z",
+    "operational": true
+  },
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "active": true
+        }
+      }
+    }
+  },
+  "serial_no": "123815/0281",
+  "last_config": "2018-08-26T21:39:29.364Z"
+} 
+to:/devices/GAMA-1/state
+Discovery event - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:20:05.081183Z",
+  "generation": "2018-08-26T21:00:13Z",
+  "families": {
+    "iot": {
+      "id": "FCU-303"
+    },
+    "bacnet": {
+      "id": "4123991"
+    },
+    "ipv4": {
+      "id": "0xc0a80094"
+    },
+    "ipv6": {
+      "id": "N/A"
+    },
+    "mac": {
+      "id": "0x0040ae115db7"
+    }
+  },
+  "points": {
+    "fcu_303_room_temp": {
+      "ref": "AI1101.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-input"
+    },
+    "fcu_303_supply_air_temp": {
+      "ref": "AI1102.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-input"
+    },
+    "fcu_303_heating_valve": {
+      "ref": "AO1105.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_303_cooling_valve": {
+      "ref": "AO1106.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_303_fan_speed": {
+      "ref": "AO1107.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_303_setpoint": {
+      "ref": "AV1.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-value"
+    },
+    "fcu_303_min_fan_speed": {
+      "ref": "AV2.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_max_fan_speed": {
+      "ref": "AV3.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_design_fan_speed": {
+      "ref": "AV4.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_design_heating_valve_position": {
+      "ref": "AV5.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_design_cooling_valve_position": {
+      "ref": "AV6.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_mode_mimic": {
+      "ref": "AV7.Present_Value",
+      "units": "No-units",
+      "type": "analog-value"
+    },
+    "fcu_303_comfort_kpi_score_live": {
+      "ref": "AV9991.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_comfort_kpi_score_yesterday": {
+      "ref": "AV9992.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_303_fan_status": {
+      "ref": "BI1103.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-input"
+    },
+    "fcu_303_occupancy": {
+      "ref": "BI1104.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-input"
+    },
+    "fcu_303_enable": {
+      "ref": "BO1108.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-output"
+    },
+    "fcu_303_bms_remote": {
+      "ref": "BV1.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_303_fcu_run_status": {
+      "ref": "BV2.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_303_within_bounds": {
+      "ref": "BV9991.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_303_valve_control_loop": {
+      "ref": "CO1.Present_Value",
+      "units": "No-units"
+    },
+    "fcu_303_fan_control_loop": {
+      "ref": "CO2.Present_Value",
+      "units": "No-units"
+    },
+    "fcu_303_mode": {
+      "ref": "MV1.present_value",
+      "Possible_Values": [
+        "Auto_",
+        "On_",
+        "Off_",
+        "Flushing_",
+        "Commissioning_"
+      ],
+      "type": "multi-state-value"
+    },
+    "fcu_303_times": {
+      "ref": "SCH1.Present_Value",
+      "units": "No-units"
+    }
+  },
+  "local_id": "4123991"
+} 
+to:/devices/GAMA-1/events/discovery
+Name = O3-DIN-CPU Stulz CRAC Modbus (5/8)
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (7/166) Found - Dewpoint (['analog-value', '1'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (8/166) Found - Temperature Setpoint (['analog-value', '201001'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (9/166) Found - Humidity Setpoint (['analog-value', '201002'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (10/166) Found - Cooling Priority  0=GE,1=CW, 2=DX (['analog-value', '201003'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (11/166) Found - Return Air Temperature (['analog-value', '201005'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (12/166) Found - Return Air Humidity (['analog-value', '201006'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (13/166) Found - Supply Air Temperature (['analog-value', '201007'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (14/166) Found - Supply Air Humidity (['analog-value', '201008'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (15/166) Found - Unit Run Hours (['analog-value', '201010'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (16/166) Found - Water Inlet 1 Temperature (CW  Supply Temperature) (['analog-value', '201012'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (17/166) Found - Outdoor Air Temperature (['analog-value', '201013'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (18/166) Found - Water Outlet 1 Temperature (['analog-value', '201014'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (19/166) Found - Compressor 1 suction pressure (['analog-value', '201015'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (20/166) Found - Compressor 1 discharge pressure (['analog-value', '201016'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (21/166) Found - Compressor 2 discharge pressure (['analog-value', '201017'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (22/166) Found - Compressor 2 suction pressure (['analog-value', '201018'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (23/166) Found - Suction Valve Open Percentage (['analog-value', '201019'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (24/166) Found - ACT - temperature set point (['analog-value', '201035'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (51/166) Found - local stop (['binary-value', '201101'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (52/166) Found - Unit Start / Stop (['binary-value', '201102'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (53/166) Found - Common Alarm (['binary-value', '201103'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (54/166) Found - Alarm Reset (send 1 to reset ) (['binary-value', '201104'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (55/166) Found - Return Air Temperature High (['binary-value', '201105'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (56/166) Found - Return Air Temperature Low (['binary-value', '201106'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (57/166) Found - Return Air Humidity High (['binary-value', '201107'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (58/166) Found - Return Air Humidity Low (['binary-value', '201108'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (59/166) Found - Fan 1 Alarm (['binary-value', '201109'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (60/166) Found - Air Filter Dirty (['binary-value', '201110'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (61/166) Found - Fan 1 ON (['binary-value', '201111'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (62/166) Found - Fire Alarm (['binary-value', '201112'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (63/166) Found - Water Detected (['binary-value', '201113'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (64/166) Found - Unit Cooling (['binary-value', '201114'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (65/166) Found - Dehumidification On (['binary-value', '201115'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (66/166) Found - Supply Air Temperature High (['binary-value', '201116'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (67/166) Found - Supply Air Temperature Low (['binary-value', '201117'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (68/166) Found - Supply Air Humidity High (['binary-value', '201118'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (69/166) Found - Supply Air Humidity Low (['binary-value', '201119'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (70/166) Found - Sensor 1 (Return air temp) Fault (['binary-value', '201120'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (71/166) Found - Sensor 2 (Return air Humidity) Fault (['binary-value', '201121'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (72/166) Found - Ext Alarm 1 (example :Cond pump or Power Supply A Failed ) (['binary-value', '201122'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (73/166) Found - Ext Alarm 2 (['binary-value', '201123'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (74/166) Found - Ext Alarm 3 (['binary-value', '201124'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (75/166) Found - Hating Active (PWW Heating Running) (['binary-value', '201125'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (76/166) Found - Humidification Active (Humidifier 1 Runing) (['binary-value', '201126'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (77/166) Found - Unit Status (ON/OFF) (['binary-value', '201127'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (78/166) Found - Unit Heating (['binary-value', '201128'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (79/166) Found - Humidifier On (['binary-value', '201129'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (80/166) Found - UPS Load Shedding (['binary-value', '201130'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (81/166) Found - GE/CW valve manual operation - active (['binary-value', '201131'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (82/166) Found - PWW  Heating manual operation -active (['binary-value', '201132'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (83/166) Found - Power Selector Switch A / B (['binary-value', '201133'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (84/166) Found - Compressor 1 ON (['binary-value', '201134'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (85/166) Found - Compressor 2 ON (['binary-value', '201135'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (86/166) Found - Heater 1 ON (['binary-value', '201136'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (87/166) Found - Heater 2 ON (['binary-value', '201137'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (88/166) Found - Compressor 1 High pressure (['binary-value', '201138'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (89/166) Found - Compressor 2 High Pressure (['binary-value', '201139'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (90/166) Found - Compressor 1 Low pressure (['binary-value', '201140'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (91/166) Found - Compressor 2 Low Pressure (['binary-value', '201141'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (92/166) Found - Heater 1 Fail (['binary-value', '201142'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (93/166) Found - Heater 2 Fail (['binary-value', '201143'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (94/166) Found - Heater 3 Fail (['binary-value', '201144'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (95/166) Found - Humidifier Fail (['binary-value', '201145'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (96/166) Found - CW 2 change over (['binary-value', '201146'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (97/166) Found - Fan 1 manual operation active (['binary-value', '201147'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (98/166) Found - Fan 2 ON (['binary-value', '201148'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (99/166) Found - Fan 3 ON (['binary-value', '201149'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (100/166) Found - Fan 2 Alarm (['binary-value', '201150'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (101/166) Found - Fan 3 Alarm (['binary-value', '201151'])
+O3-DIN-CPU-Stulz-CRAC-Modbus (5/8): Telemetry Object (102/166) Found - Modbus Device 1 Address (['characterstring-value', '201999'])
+State message - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:20:35.749156Z",
+  "system": {
+    "make_model": "O3-DIN-CPU",
+    "firmware": {
+      "version": "4.12.1.8 (4120-001) D"
+    },
+    "serial_no": "182732142",
+    "last_config": "2018-08-26T21:49:29.364Z",
+    "operational": true
+  },
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "active": true
+        }
+      }
+    }
+  },
+  "serial_no": "120670/0134",
+  "last_config": "2018-08-26T21:39:29.364Z"
+} 
+to:/devices/GAMA-1/state
+Discovery event - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:20:35.750156Z",
+  "generation": "2018-08-26T21:00:13Z",
+  "families": {
+    "iot": {
+      "id": "O3-DIN-CPU-Stulz-CRAC-Modbus"
+    },
+    "bacnet": {
+      "id": "4160880"
+    },
+    "ipv4": {
+      "id": "0xc0a80076"
+    },
+    "ipv6": {
+      "id": "N/A"
+    },
+    "mac": {
+      "id": "0x0040ae10edd0"
+    }
+  },
+  "points": {
+    "humidity_setpoint": {
+      "ref": "AV201002.Present_Value",
+      "units": "Percent-relative-humidity",
+      "type": "analog-value"
+    },
+    "fan_1_alarm": {
+      "ref": "BV201109.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_1_on": {
+      "ref": "BV201111.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "humidification_active_humidifier_1_runing": {
+      "ref": "BV201126.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "humidifier_on": {
+      "ref": "BV201129.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "ups_load_shedding": {
+      "ref": "BV201130.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "humidifier_fail": {
+      "ref": "BV201145.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_1_manual_operation_active": {
+      "ref": "BV201147.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_2_on": {
+      "ref": "BV201148.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_3_on": {
+      "ref": "BV201149.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_2_alarm": {
+      "ref": "BV201150.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fan_3_alarm": {
+      "ref": "BV201151.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    }
+  },
+  "local_id": "4160880"
+} 
+to:/devices/GAMA-1/events/discovery
+Name = GAT-4121442 / FCU-102 (6/8)
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (3/136) Found - FCU_102 Room Temp (['analog-input', '1101'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (4/136) Found - FCU_102 Supply Air Temp (['analog-input', '1102'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (7/136) Found - FCU_102 Heating Valve (['analog-output', '1105'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (8/136) Found - FCU_102 Cooling Valve (['analog-output', '1106'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (9/136) Found - FCU_102 Fan Speed (['analog-output', '1107'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (14/136) Found - FCU_102 Setpoint (['analog-value', '1'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (15/136) Found - FCU_102 Min Fan Speed (['analog-value', '2'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (16/136) Found - FCU_102 Max Fan Speed (['analog-value', '3'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (17/136) Found - FCU_102 Design Fan Speed (['analog-value', '4'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (18/136) Found - FCU_102 Design Heating Valve Position (['analog-value', '5'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (19/136) Found - FCU_102 Design Cooling Valve Position (['analog-value', '6'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (20/136) Found - FCU_102 Mode_Mimic (['analog-value', '7'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (21/136) Found - FCU_102 Comfort KPI Score (Live) (['analog-value', '9991'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (22/136) Found - FCU_102 Comfort KPI Score (Yesterday) (['analog-value', '9992'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (49/136) Found - FCU_102 Fan Status (['binary-input', '1103'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (50/136) Found - FCU_102 Occupancy (['binary-input', '1104'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (51/136) Found - FCU_102 Enable (['binary-output', '1108'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (54/136) Found - FCU_102 BMS Remote (['binary-value', '1'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (55/136) Found - FCU_102 FCU Run Status (['binary-value', '2'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (56/136) Found - FCU_102 Within Bounds (['binary-value', '9991'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (57/136) Found - FCU_102 Valve Control Loop (['loop', '1'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (58/136) Found - FCU_102 Fan Control Loop (['loop', '2'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (59/136) Found - Google Cloud IoT Gateway Configuration (['characterstring-value', '99902'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (60/136) Found - Google Cloud IoT Gateway State Telemetry (['characterstring-value', '99903'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (114/136) Found - FCU_102 Mode (['multi-state-value', '1'])
+GAT-4121442-/-FCU-102 (6/8): Telemetry Object (129/136) Found - FCU_102 Times (['schedule', '1'])
+State message - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:21:10.288888Z",
+  "system": {
+    "make_model": "O3-DIN-SRC",
+    "firmware": {
+      "version": "4.13.0.347 (4130-001) D"
+    },
+    "serial_no": "182732142",
+    "last_config": "2018-08-26T21:49:29.364Z",
+    "operational": true
+  },
+  "gateway": {
+    "discovery": {
+      "families": {
+        "bacnet": {
+          "generation": "2018-08-26T21:00:13Z",
+          "active": true
+        }
+      }
+    }
+  },
+  "serial_no": "117202/0083",
+  "last_config": "2018-08-26T21:39:29.364Z"
+} 
+to:/devices/GAMA-1/state
+Discovery event - publishing: 
+{
+  "version": 1,
+  "timestamp": "2022-02-25T17:21:10.289885Z",
+  "generation": "2018-08-26T21:00:13Z",
+  "families": {
+    "iot": {
+      "id": "GAT-4121442-/-FCU-102"
+    },
+    "bacnet": {
+      "id": "4121442"
+    },
+    "ipv4": {
+      "id": "0xc0a8004a"
+    },
+    "ipv6": {
+      "id": "N/A"
+    },
+    "mac": {
+      "id": "0x0040ae105d52"
+    }
+  },
+  "points": {
+    "fcu_102_room_temp": {
+      "ref": "AI1101.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-input"
+    },
+    "fcu_102_supply_air_temp": {
+      "ref": "AI1102.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-input"
+    },
+    "fcu_102_heating_valve": {
+      "ref": "AO1105.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_102_cooling_valve": {
+      "ref": "AO1106.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_102_fan_speed": {
+      "ref": "AO1107.Present_Value",
+      "units": "Percent",
+      "type": "analog-output"
+    },
+    "fcu_102_setpoint": {
+      "ref": "AV1.Present_Value",
+      "units": "Degrees-Celsius",
+      "type": "analog-value"
+    },
+    "fcu_102_min_fan_speed": {
+      "ref": "AV2.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_max_fan_speed": {
+      "ref": "AV3.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_design_fan_speed": {
+      "ref": "AV4.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_design_heating_valve_position": {
+      "ref": "AV5.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_design_cooling_valve_position": {
+      "ref": "AV6.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_mode_mimic": {
+      "ref": "AV7.Present_Value",
+      "units": "No-units",
+      "type": "analog-value"
+    },
+    "fcu_102_comfort_kpi_score_live": {
+      "ref": "AV9991.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_comfort_kpi_score_yesterday": {
+      "ref": "AV9992.Present_Value",
+      "units": "Percent",
+      "type": "analog-value"
+    },
+    "fcu_102_fan_status": {
+      "ref": "BI1103.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-input"
+    },
+    "fcu_102_occupancy": {
+      "ref": "BI1104.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-input"
+    },
+    "fcu_102_enable": {
+      "ref": "BO1108.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-output"
+    },
+    "fcu_102_bms_remote": {
+      "ref": "BV1.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_102_fcu_run_status": {
+      "ref": "BV2.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_102_within_bounds": {
+      "ref": "BV9991.Present_Value",
+      "possible_values": [
+        "On",
+        "Off"
+      ],
+      "type": "binary-value"
+    },
+    "fcu_102_valve_control_loop": {
+      "ref": "CO1.Present_Value",
+      "units": "No-units"
+    },
+    "fcu_102_fan_control_loop": {
+      "ref": "CO2.Present_Value",
+      "units": "No-units"
+    },
+    "fcu_102_mode": {
+      "ref": "MV1.present_value",
+      "Possible_Values": [
+        "Auto_",
+        "On_",
+        "Off_",
+        "Flushing_",
+        "Commissioning_"
+      ],
+      "type": "multi-state-value"
+    },
+    "fcu_102_times": {
+      "ref": "SCH1.Present_Value",
+      "units": "No-units"
+    }
+  },
+  "local_id": "4121442"
+} 
+to:/devices/GAMA-1/events/discovery
+Name = DDC-100 (7/8)
+DDC-100 (7/8): Telemetry Object (3/195) Found - heating_water_valve_percentage_sensor (['analog-input', '1106'])
+DDC-100 (7/8): Telemetry Object (4/195) Found - chilled_water_valve_percentage_sensor (['analog-input', '1108'])
+DDC-100 (7/8): Telemetry Object (5/195) Found - filter_differential_pressure_sensor (['analog-input', '1201'])
+DDC-100 (7/8): Telemetry Object (6/195) Found - discharge_air_differential_pressure_sensor (['analog-input', '1202'])
+DDC-100 (7/8): Telemetry Object (7/195) Found - discharge_air_temperature_sensor (['analog-input', '1203'])
+DDC-100 (7/8): Telemetry Object (8/195) Found - return_air_temperature_sensor (['analog-input', '1204'])
+DDC-100 (7/8): Telemetry Object (11/195) Found - discharge_fan_percentage_speed_command (['analog-output', '1103'])
+DDC-100 (7/8): Telemetry Object (12/195) Found - heating_water_valve_percentage_command (['analog-output', '1105'])
+DDC-100 (7/8): Telemetry Object (13/195) Found - chilled_water_valve_percentage_command (['analog-output', '1107'])
+DDC-100 (7/8): Telemetry Object (18/195) Found - return_air_temperature_heating_local_setpoint (['analog-value', '1'])
+DDC-100 (7/8): Telemetry Object (19/195) Found - max_fan_speed_percentage_setpoint (['analog-value', '2'])
+DDC-100 (7/8): Telemetry Object (20/195) Found - min_fan_speed_percentage_setpoint (['analog-value', '3'])
+DDC-100 (7/8): Telemetry Object (21/195) Found - return_air_temperature_cooling_local_setpoint (['analog-value', '4'])
+DDC-100 (7/8): Telemetry Object (22/195) Found - zone_air_base_setpoint (['analog-value', '5'])
+DDC-100 (7/8): Telemetry Object (23/195) Found - local_air_base_setpoint (['analog-value', '6'])
+DDC-100 (7/8): Telemetry Object (24/195) Found - return_air_temperature_heating_control_setpoint (['analog-value', '101'])
+DDC-100 (7/8): Telemetry Object (25/195) Found - return_air_temperature_cooling_control_setpoint (['analog-value', '102'])
+DDC-100 (7/8): Telemetry Object (26/195) Found - plant_demand_valve_open_position (['analog-value', '103'])
+DDC-100 (7/8): Telemetry Object (27/195) Found - plant_demand_on_delay (['analog-value', '104'])
+DDC-100 (7/8): Telemetry Object (28/195) Found - plant_demand_off_delay (['analog-value', '105'])
+DDC-100 (7/8): Telemetry Object (29/195) Found - FCU_air_temperature_high_limit (['analog-value', '106'])
+DDC-100 (7/8): Telemetry Object (30/195) Found - FCU_air_temperature_low_limit (['analog-value', '107'])
+DDC-100 (7/8): Telemetry Object (31/195) Found - return_air_temperature_deviation_alarm_delay (['analog-value', '109'])
+DDC-100 (7/8): Telemetry Object (32/195) Found - return_air_temperature_deviation_alarm_differential (['analog-value', '110'])
+DDC-100 (7/8): Telemetry Object (33/195) Found - valve_position_mismatch_alarm_delay (['analog-value', '111'])
+DDC-100 (7/8): Telemetry Object (34/195) Found - FCU_air_temperature_limit_alarm_delay (['analog-value', '112'])
+DDC-100 (7/8): Telemetry Object (35/195) Found - discharge_air_pressure_deviation_alarm_differential (['analog-value', '113'])
+DDC-100 (7/8): Telemetry Object (36/195) Found - discharge_air_pressure_deviation_alarm_delay (['analog-value', '114'])
+DDC-100 (7/8): Telemetry Object (37/195) Found - filter_dirty_alarm_pressure_differential (['analog-value', '115'])
+DDC-100 (7/8): Telemetry Object (38/195) Found - fabric_protection_enable_setpoint (['analog-value', '116'])
+DDC-100 (7/8): Telemetry Object (39/195) Found - fabric_protection_reset_setpoint (['analog-value', '117'])
+DDC-100 (7/8): Telemetry Object (40/195) Found - zone_air_temperature_control_minimum_deadband (['analog-value', '118'])
+DDC-100 (7/8): Telemetry Object (41/195) Found - FanDPS (['analog-value', '119'])
+DDC-100 (7/8): Telemetry Object (42/195) Found - FanDPSDevSpt (['analog-value', '120'])
+DDC-100 (7/8): Telemetry Object (76/195) Found - discharge_fan_run_status (['binary-input', '1102'])
+DDC-100 (7/8): Telemetry Object (77/195) Found - condensate_pump_high_level_alarm (['binary-input', '1104'])
+DDC-100 (7/8): Telemetry Object (78/195) Found - discharge_fan_run_command (['binary-output', '1101'])
+DDC-100 (7/8): Telemetry Object (79/195) Found - FCU_alarm_reset (['binary-value', '1'])
+DDC-100 (7/8): Telemetry Object (80/195) Found - return_air_temperature_setpoint_select (['binary-value', '2'])
+DDC-100 (7/8): Telemetry Object (81/195) Found - filter_dirty_alarm_reset (['binary-value', '3'])
+DDC-100 (7/8): Telemetry Object (82/195) Found - fabric_protection_status (['binary-value', '101'])
+DDC-100 (7/8): Telemetry Object (83/195) Found - discharge_fan_failure_latch (['binary-value', '102'])
+DDC-100 (7/8): Telemetry Object (84/195) Found - filter_dirty_alarm_latch (['binary-value', '103'])
+DDC-100 (7/8): Telemetry Object (85/195) Found - discharge_fan_run_hours_reset (['binary-value', '104'])
+DDC-100 (7/8): Telemetry Object (86/195) Found - heating_water_valve_position_mismatch_alarm (['binary-value', '105'])
+DDC-100 (7/8): Telemetry Object (87/195) Found - chilled_water_valve_position_mismatch_alarm (['binary-value', '106'])
+DDC-100 (7/8): Telemetry Object (88/195) Found - return_air_temperature_deviation_alarm (['binary-value', '107'])
+DDC-100 (7/8): Telemetry Object (89/195) Found - FCU_air_temperature_high_limit_alarm (['binary-value', '108'])
+DDC-100 (7/8): Telemetry Object (90/195) Found - FCU_air_temperature_low_limit_alarm (['binary-value', '109'])
+DDC-100 (7/8): Telemetry Object (91/195) Found - FCU_master_slave_select (['binary-value', '110'])
+DDC-100 (7/8): Telemetry Object (92/195) Found - discharge_air_pressure_deviation_alarm (['binary-value', '201'])
+DDC-100 (7/8): Telemetry Object (93/195) Found - fire_alarm_healthy_status (['binary-value', '1001'])
+DDC-100 (7/8): Telemetry Object (94/195) Found - FCU_heating_demand (['binary-value', '1002'])
+DDC-100 (7/8): Telemetry Object (95/195) Found - FCU_cooling_demand (['binary-value', '1003'])
+DDC-100 (7/8): Telemetry Object (96/195) Found - FCU_AHU_demand (['binary-value', '1004'])
