@@ -53,7 +53,6 @@ DEFAULT_STATE_METADATA_TEMPLATE = \
     "last_config": "2018-08-26T21:49:29.364Z",\
     "operational": true\
   },\
-  "gateway": {\
     "discovery": {\
       "families": {\
         "bacnet": {\
@@ -62,7 +61,6 @@ DEFAULT_STATE_METADATA_TEMPLATE = \
         }\
       }\
     }\
-  }\
 }'
 
 DEFAULT_METADATA_TEMPLATE = \
@@ -195,7 +193,7 @@ class UDMIDiscovery():
         #    :return: nothing
 
         if self.debug >= level:
-            print(message)
+            print(f"{datetime.datetime.now()} {message}")
 
 
     def __logError(self, message=None, error=None, filename=None, linenumber=None, level=None):
@@ -235,15 +233,17 @@ class UDMIDiscovery():
 
     def get_certificates_path(self):
         # Gets the path on disk where certificates are stored.
-
+        """
         data_path = BACNET_SERVER_PATH
         data_path_parts = os.path.split(data_path)
         certificates_path = os.path.join(data_path_parts[0], "Certificates", "Google Cloud MQTT")
         
         if not os.path.exists(certificates_path):
             os.makedirs(certificates_path)
-            
+        
         return certificates_path
+        """
+        return 'Certificates/'
         
         
     def __check_private_key(self):
@@ -599,6 +599,7 @@ class UDMIDiscovery():
         except Exception as error:
             pass
 
+    # State not always sent back .. 
     def process_device_message(self,dev_id,topic_type,message_dict):
         try:
             self.printd("Received Message on '{}' topic".format(topic_type),level=3)
@@ -611,31 +612,52 @@ class UDMIDiscovery():
                 self.enumeration = False
                 json_config = message_dict
                 self.last_config = json_config['timestamp']
-                self.config_gateway = json_config['gateway']
-                if 'gateway' in json_config \
-                and 'discovery' in json_config['gateway'] \
-                and 'families' in json_config['gateway']['discovery'] \
-                and 'bacnet' in json_config['gateway']['discovery']['families']:
-                    if 'generation' in json_config['gateway']['discovery']['families']['bacnet']:
+                self.config_gateway = json_config
+                # Discovery is in in it's own top level block, not gateway
+                # https://faucetsdn.github.io/udmi/tests/config.tests/periodic.json
+                if 'discovery' in json_config\
+                and 'families' in json_config['discovery'] \
+                and 'bacnet' in json_config['discovery']['families']:
+                    if 'generation' in json_config['discovery']['families']['bacnet']: 
+                        print('generation found')
                         self.discovery_type = EXPLICIT_SCAN
-                        self.generation = json_config['gateway']['discovery']['families']['bacnet']['generation']
+                        self.generation = json_config['discovery']['families']['bacnet']['generation']
                         self.scan_triggered = True
-                        if 'enumerate' in json_config['gateway']['discovery']['families']['bacnet']:
-                            self.discovery_type = IMPLICIT_SCAN
-                            self.enumeration = json_config['gateway']['discovery']['families']['bacnet']['enumerate']
-                        elif 'scan_interval_sec' in json_config['gateway']['discovery']['families']['bacnet'] \
-                        and 'scan_duration_sec' in json_config['gateway']['discovery']['families']['bacnet']:
-                            self.discovery_type = PERIODIC_SCAN
-                            self.discovery_scan_interval = json_config['gateway']['discovery']['families']['bacnet']['scan_interval_sec']
-                            self.discovery_scan_duration = json_config['gateway']['discovery']['families']['bacnet']['scan_duration_sec']
-                            self.enumeration = json_config['gateway']['discovery']['families']['bacnet']['enumerate']
-                    elif 'scan_interval_sec' in json_config['gateway']['discovery']['families']['bacnet']:
-                        # CONTINUOUS SCAN not supported
-                        self.discovery_type = CONTINUOUS_SCAN
-                        self.discovery_scan_interval = json_config['gateway']['discovery']['families']['bacnet']['scan_interval_sec']
 
+                        # Elif is seperate? Can have both enumeration and a scan interval?
+                        if 'enumerate' in json_config['discovery']['families']['bacnet']:
+                            self.discovery_type = IMPLICIT_SCAN
+                            self.enumeration = json_config['discovery']['families']['bacnet']['enumerate']
+                        elif 'scan_interval_sec' in json_config['discovery']['families']['bacnet'] \
+                        and 'scan_duration_sec' in json_config['discovery']['families']['bacnet']:
+                            self.discovery_type = PERIODIC_SCAN
+                            self.discovery_scan_interval = json_config['discovery']['families']['bacnet']['scan_interval_sec']
+                            self.discovery_scan_duration = json_config['discovery']['families']['bacnet']['scan_duration_sec']
+                            self.enumeration = json_config['discovery']['families']['bacnet']['enumerate']
+                    elif 'scan_interval_sec' in json_config['discovery']['families']['bacnet']:
+                        # CONTINUOUS SCAN not supported
+                        # How does/should a continuous scan work? ala ATA with internal intervals?
+                        # Is it a passive listening to other devices rather than explicitly requesting them?
+                        self.discovery_type = CONTINUOUS_SCAN
+                        self.discovery_scan_interval = json_config['discovery']['families']['bacnet']['scan_interval_sec']
+                else:
+                    # send blank state
+                    # turn off generation
+                    self.printd("Config message not discovery")
+                    self.generation = None
+                    st_meta = json.loads(DEFAULT_STATE_METADATA_TEMPLATE)
+                    st_meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                    st_meta['system']['make_model'] = ""
+                    st_meta['system']['firmware']['version'] = ""
+                    st_meta['serial_no'] = "182732142" # HARDCODED
+                    st_meta['system']['last_config'] = json_config['timestamp']
+                    st_meta.pop("discovery")
+                    st_meta_topic = self.state_topic.format(GWID=self.GCP_device)
+                    self.printd("pubish")
+                    self.mqtt_client.publish(st_meta_topic,json.dumps(st_meta,indent=2))
+                    self.printd("State message - publishing: \n{} \nto:{}".format(json.dumps(st_meta,indent=2), st_meta_topic), level=1)
         except Exception as error:
-            pass
+            raise error 
 
     def mqtt_error_str(self, rc):
         # Convert a Paho error to a human readable string.
@@ -697,7 +719,7 @@ class UDMIDiscovery():
     def on_message(self, unused_client, unused_userdata, message):
         # Callback when the device receives a message on a subscription
         message_str = message.payload.decode('utf-8')
-        message_dict = json.loads(message.payload)
+        message_dict = json.loads(message.payload) # uncaught exception results in crash when invalid JSON recieved (also no puback)
         self.printd("Google MQTT MESSAGE received topic: <{topic}>   message: <{message}>".format(topic=message.topic, message=message_str), level=4)
         sp_topic = message.topic.split('/')
         if sp_topic[2] == self.GCP_device:
@@ -765,13 +787,17 @@ class UDMIDiscovery():
             self.metadata = DEFAULT_METADATA_TEMPLATE
 
             for dev in devices:
+                if not self.generation:
+                    self.printd("ending discovery")
+                    break
+
                 device_no += 1
                 str_dev_id = dev
                 if str_dev_id.isnumeric():
                     str_dname = str(devices[dev]['displayName'])
                     if str_dname in self.xref.keys():
                         str_dname = self.xref[str_dname]
-                    print ("Name = {} ({}/{})".format(str_dname,device_no,self.device_count))
+                    print ("Name = {} {} ({}/{})".format(str_dname,str_dev_id,device_no,self.device_count))
                     # Get the Vendor Id
                     self.url = "{}/enteliweb/api/.bacnet/{}/{}/DEV,{}/vendor-identifier?alt=json".format(self.server, self.site, dev, dev)
                     res = self.get_from_api()
@@ -827,7 +853,7 @@ class UDMIDiscovery():
                         str_dname = str_dname.replace('_', '-')
 
                         meta = json.loads(self.metadata)
-                        meta['local_id'] = str_dev_id
+                        meta['local_id'] = str_dev_id # This isn't an acceptable value .. it's the bacnet id
 
                         if discover_points:
                             meta['points'] = {}
@@ -969,32 +995,56 @@ class UDMIDiscovery():
                                             else:
                                                 str_units = "No-units"
                                                 meta['points'][str_oname] = json.loads('{"ref" : "'+str_obj+sp_obj[1] + '.Present_Value","units": "' + str_units + '"}')
+                            
+                            
 
                         else:
                             meta.pop('points')
 
+                        # Exit if generation stopped .. so as to not publish any more states/events (fix periodic scan)
+                        if not self.generation:
+                            self.printd("ending discovery")
+                            break
+
+                        # State doesn't turn update after discovery is finished
+                        # State message is sent at the end of discovery not once it's started
+                        # Sent multiple times (with each discovered device)
                         st_meta = json.loads(self.state_metadata)
                         st_meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         st_meta['system']['make_model'] = model_name['value']
                         st_meta['system']['firmware']['version'] = firmware_version['value']
-                        st_meta['serial_no'] = serial_no['value']
-                        st_meta['last_config'] = self.last_config
-                        st_meta['gateway']['discovery']['families']['bacnet']['generation'] = self.config_gateway['discovery']['families']['bacnet']['generation']
-                        st_meta['gateway']['discovery']['families']['bacnet']["active"] = True
+                        st_meta['serial_no'] = serial_no['value'] # NOTE this picked up the value of my O3-DIN-SRC 
+                        st_meta['system']['last_config'] = self.last_config # Need to update the system 
+                        st_meta['discovery']['families']['bacnet']['generation'] = self.config_gateway['discovery']['families']['bacnet']['generation'] # Crash here if new config recieved which removes this command
+                        st_meta['discovery']['families']['bacnet']["active"] = True # This never becomes false? 
                         st_meta_topic = self.state_topic.format(GWID=self.GCP_device)
                         self.mqtt_client.publish(st_meta_topic,json.dumps(st_meta,indent=2))
                         self.printd("State message - publishing: \n{} \nto:{}".format(json.dumps(st_meta,indent=2), st_meta_topic), level=1)
 
                         meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         meta['generation'] = self.generation
-                        meta['families']['iot']['id'] = str_dname
-                        meta['families']['bacnet']['id'] = dev
-                        meta['families']['ipv4']['id'] = ipv4_address['value']
+                        meta['families']['iot']['id'] = str_dname # This is guessed? Works for the delta registrar workflow where the device will be generated with this ID but otherwise not
+                        meta['families']['bacnet']['id'] = dev # Trevor wants this in hex ..(though should it be numeric?)
+                        meta['families']['ipv4']['id'] = ipv4_address['value'] # This is in hex format not IP format
+                        # ipv4 is left as N/A - best to just omit it at it doesnt support it
                         meta['families']['mac']['id'] = mac_address['value']
                         meta_topic = self.events_discovery_topic.format(GWID=self.GCP_device)
                         self.mqtt_client.publish(meta_topic, json.dumps(meta,indent=2))
                         self.printd("Discovery event - publishing: \n{} \nto:{}".format(json.dumps(meta,indent=2), meta_topic), level=1)
 
+            # Publish end state with activation false
+            if self.generation:
+                st_meta = json.loads(self.state_metadata)
+                st_meta['timestamp'] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                st_meta['system']['make_model'] = model_name['value']
+                st_meta['system']['firmware']['version'] = firmware_version['value']
+                st_meta['serial_no'] = serial_no['value'] 
+                st_meta['system']['last_config'] = self.last_config #
+                st_meta['discovery']['families']['bacnet']['generation'] = self.config_gateway['discovery']['families']['bacnet']['generation']
+                st_meta['discovery']['families']['bacnet']["active"] = False 
+                st_meta_topic = self.state_topic.format(GWID=self.GCP_device)
+                self.mqtt_client.publish(st_meta_topic,json.dumps(st_meta,indent=2))
+                self.printd("State message - publishing: \n{} \nto:{}".format(json.dumps(st_meta,indent=2), st_meta_topic), level=1)
         except Exception as error:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -1156,7 +1206,7 @@ class UDMIDiscovery():
                 if self.should_backoff == False:
                     # Connected to IoT Core
                     if self.generation != None:
-                        if datetime.datetime.utcnow() >= datetime.datetime.strptime(self.generation,"%Y-%m-%dT%H:%M:%SZ"):
+                        if datetime.datetime.utcnow() >= datetime.datetime.strptime(self.generation,"%Y-%m-%dT%H:%M:%SZ"): # Only logic is that generation time is passed which is always true, unless removed from config will initiate discovery everytime a config message is recieved (i.e. every connect/jwt refresh)
                             if self.discovery_type in (PERIODIC_SCAN):
                                 if datetime.datetime.utcnow() > self.scan_timeout:
                                     dt_delay = datetime.timedelta(seconds=self.discovery_scan_interval if self.discovery_type == 'Periodic Scan' else 0)
@@ -1190,7 +1240,7 @@ def main():
         eWeb.init()
         
         # Start interface should never end
-        UDMIDiscovery.run(eWeb)
+        UDMIDiscovery.run(eWeb) 
 
     except Exception as error:
         exc_type, exc_obj, exc_tb = sys.exc_info()

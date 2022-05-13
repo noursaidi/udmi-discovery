@@ -1,0 +1,55 @@
+ournew@macbook-2 udmi-discovery % python3 udmi-discovery.py
+UDMI Discovery Initialised
+Default google roots path: /Users/nournew/udmi-discovery/Certificates/google_roots.pem
+Checking private key in Certificates/rsa_private.pem...
+Configuration Path=udmi-config.json
+self.configuration_loaded; Connecting to MQTT
+Device client_id is 'projects/daq1-273309/locations/us-central1/registries/registrar_test/devices/GAMA-1'
+Creating JWT using RS256 from private key file Certificates/rsa_private.pem
+Connecting to mqtt.googleapis.com:8883
+Return Code = 0
+On Connect: Connection Accepted. - [0]
+Subscribing to /devices/GAMA-1/config
+Subscribing to /devices/GAMA-1/commands/#
+Subscribing to /devices/GAMA-1/errors
+Google MQTT MESSAGE received topic: </devices/GAMA-1/config>   message: <{"version":"1.3.14","timestamp":"2022-05-12T21:35:55.178Z","system":{"min_loglevel":300,"metrics_rate_sec":600,"extra_field":"reset_config"}}>
+Received Message on 'config' topic
+Google MQTT MESSAGE received topic: </devices/GAMA-1/config>   message: <{"version":"1.3.14","timestamp":"2022-05-12T21:36:08.382Z","system":{"min_loglevel":400,"metrics_rate_sec":600}}>
+Received Message on 'config' topic
+Google MQTT MESSAGE received topic: </devices/GAMA-1/config>   message: <{"version":"1.3.14","timestamp":"2022-05-12T21:36:09.236Z","system":{"min_loglevel":400,"metrics_rate_sec":600},"discovery":{"families":{}}}>
+Received Message on 'config' topic
+Google MQTT MESSAGE received topic: </devices/GAMA-1/config>   message: <{"version":"1.3.14","timestamp":"2022-05-12T21:36:11.257Z","system":{"min_loglevel":400,"metrics_rate_sec":600},"discovery":{"families":{"bacnet":{"generation":"2022-05-12T21:36:21Z","enumerate":true}}}}>
+Received Message on 'config' topic
+generation found
+Name = eWeb (2/6)
+Name = FCU-303 (3/6)
+FCU-303 (3/6): Telemetry Object (3/109) Found - FCU_303 Room Temp (['analog-input', '1101'])
+FCU-303 (3/6): Telemetry Object (4/109) Found - FCU_303 Supply Air Temp (['analog-input', '1102'])
+FCU-303 (3/6): Telemetry Object (5/109) Found - Test Analogue Input (['analog-input', '1103'])
+FCU-303 (3/6): Telemetry Object (9/109) Found - FCU_303 Heating Valve (['analog-output', '1105'])
+FCU-303 (3/6): Telemetry Object (10/109) Found - FCU_303 Cooling Valve (['analog-output', '1106'])
+FCU-303 (3/6): Telemetry Object (11/109) Found - FCU_303 Fan Speed (['analog-output', '1107'])
+FCU-303 (3/6): Telemetry Object (16/109) Found - FCU_303 Setpoint (['analog-value', '1'])
+FCU-303 (3/6): Telemetry Object (17/109) Found - FCU_303 Min Fan Speed (['analog-value', '2'])
+FCU-303 (3/6): Telemetry Object (18/109) Found - FCU_303 Max Fan Speed (['analog-value', '3'])
+FCU-303 (3/6): Telemetry Object (19/109) Found - FCU_303 Design Fan Speed (['analog-value', '4'])
+FCU-303 (3/6): Telemetry Object (20/109) Found - FCU_303 Design Heating Valve Position (['analog-value', '5'])
+FCU-303 (3/6): Telemetry Object (21/109) Found - FCU_303 Design Cooling Valve Position (['analog-value', '6'])
+FCU-303 (3/6): Telemetry Object (22/109) Found - FCU_303 Mode_Mimic (['analog-value', '7'])
+FCU-303 (3/6): Telemetry Object (23/109) Found - FCU_303 Comfort KPI Score (Live) (['analog-value', '9991'])
+FCU-303 (3/6): Telemetry Object (24/109) Found - FCU_303 Comfort KPI Score (Yesterday) (['analog-value', '9992'])
+FCU-303 (3/6): Telemetry Object (51/109) Found - FCU_303 Fan Status (['binary-input', '1104'])
+FCU-303 (3/6): Telemetry Object (52/109) Found - FCU_303 Enable (['binary-output', '1108'])
+FCU-303 (3/6): Telemetry Object (53/109) Found - Test Binary Output (['binary-output', '1201'])
+FCU-303 (3/6): Telemetry Object (56/109) Found - FCU_303 BMS Remote (['binary-value', '1'])
+FCU-303 (3/6): Telemetry Object (57/109) Found - FCU_303 FCU Run Status (['binary-value', '2'])
+FCU-303 (3/6): Telemetry Object (58/109) Found - FCU_303 Within Bounds (['binary-value', '9991'])
+FCU-303 (3/6): Telemetry Object (59/109) Found - FCU_303 Valve Control Loop (['loop', '1'])
+FCU-303 (3/6): Telemetry Object (60/109) Found - FCU_303 Fan Control Loop (['loop', '2'])
+FCU-303 (3/6): Telemetry Object (61/109) Found - _UDMI Configuration (['characterstring-value', '999901'])
+FCU-303 (3/6): Telemetry Object (62/109) Found - UDMI State Telemetry (['characterstring-value', '999902'])
+FCU-303 (3/6): Telemetry Object (89/109) Found - FCU_303 Mode (['multi-state-value', '1'])
+FCU-303 (3/6): Telemetry Object (102/109) Found - FCU_303 Times (['schedule', '1'])
+Delta UDMI Discovery Tool for Google DAQ Registrar error: udmi-discovery.py:1203
+'discovery' - udmi-discovery.py:991
+nournew@macbook-2 udmi-discovery % 
